@@ -3,22 +3,21 @@
 import {
   initDB, getOrCreateResume, updateResumeConfig,
   savePersonalInfo, saveProfileSummary, saveWorkExperience,
-  saveEducation, saveProjects, saveSkills, saveCertifications,
+  saveEducation, saveSkills, saveCertifications,
   saveInternships, saveLanguages, saveCustomSections,
   loadResume, clearAllData, exportDraft, importDraft,
 } from './db.js';
 
 import {
-  addWorkEntry, addAchievement, removeWorkEntry,
+  addWorkEntry, addAchievement, addWorkProject, removeWorkEntry,
   addEducationEntry, removeEducationEntry,
-  addProjectEntry, removeProjectEntry,
   addSkillCategory, addSkillItem, removeSkillCategory,
   addCertificationEntry, removeCertificationEntry,
   addInternshipEntry, removeInternshipEntry,
   addLanguageEntry, removeLanguageEntry,
   addCustomSection, addCustomItem, removeCustomSection,
   collectPersonalInfo, collectProfileSummary, collectWorkExperience,
-  collectEducation, collectProjects, collectSkills,
+  collectEducation, collectSkills,
   collectCertifications, collectInternships, collectLanguages,
   collectCustomSections, resetCounters,
 } from './form.js';
@@ -92,11 +91,6 @@ function populateForm(data) {
   // Education
   if (data.education && data.education.length > 0) {
     data.education.forEach(entry => addEducationEntry(entry));
-  }
-
-  // Projects
-  if (data.projects && data.projects.length > 0) {
-    data.projects.forEach(entry => addProjectEntry(entry));
   }
 
   // Skills
@@ -189,13 +183,30 @@ function updateEntryNumbers(container) {
   });
 }
 
+function moveWorkProjectUp(btn) {
+  const item = btn.closest('.work-project-item');
+  if (!item) return;
+  const prev = item.previousElementSibling;
+  if (prev && prev.classList.contains('work-project-item')) {
+    item.parentNode.insertBefore(item, prev);
+  }
+}
+
+function moveWorkProjectDown(btn) {
+  const item = btn.closest('.work-project-item');
+  if (!item) return;
+  const next = item.nextElementSibling;
+  if (next && next.classList.contains('work-project-item')) {
+    item.parentNode.insertBefore(next, item);
+  }
+}
+
 // ─── Event binding ──────────────────────────────────────────────
 
 function bindEvents() {
   // Add buttons
   document.getElementById('btn-add-work').addEventListener('click', () => addWorkEntry());
   document.getElementById('btn-add-education').addEventListener('click', () => addEducationEntry());
-  document.getElementById('btn-add-project').addEventListener('click', () => addProjectEntry());
   document.getElementById('btn-add-skill').addEventListener('click', () => addSkillCategory());
   document.getElementById('btn-add-certification').addEventListener('click', () => addCertificationEntry());
   document.getElementById('btn-add-internship').addEventListener('click', () => addInternshipEntry());
@@ -209,8 +220,8 @@ function bindEvents() {
     const action = btn.dataset.action;
 
     const sectionRemovals = [
-      'remove-work', 'remove-education', 'remove-project', 
-      'remove-skill', 'remove-certification', 'remove-internship', 
+      'remove-work', 'remove-education',
+      'remove-skill', 'remove-certification', 'remove-internship',
       'remove-language', 'remove-custom-section'
     ];
 
@@ -234,8 +245,19 @@ function bindEvents() {
         removeEducationEntry(btn.dataset.index);
         debounceSave();
         break;
-      case 'remove-project':
-        removeProjectEntry(btn.dataset.index);
+      case 'add-work-project':
+        addWorkProject(btn.dataset.workIndex);
+        break;
+      case 'remove-work-project':
+        btn.closest('.work-project-item').remove();
+        debounceSave();
+        break;
+      case 'move-work-project-up':
+        moveWorkProjectUp(btn);
+        debounceSave();
+        break;
+      case 'move-work-project-down':
+        moveWorkProjectDown(btn);
         debounceSave();
         break;
       case 'remove-skill':
@@ -331,7 +353,6 @@ async function saveAll() {
     await saveProfileSummary(resumeId, collectProfileSummary());
     await saveWorkExperience(resumeId, collectWorkExperience());
     await saveEducation(resumeId, collectEducation());
-    await saveProjects(resumeId, collectProjects());
     await saveSkills(resumeId, collectSkills());
     await saveCertifications(resumeId, collectCertifications());
     await saveInternships(resumeId, collectInternships());
@@ -406,7 +427,6 @@ async function handleImportDraft(file) {
       // Clear existing form entries
       document.getElementById('work-entries').innerHTML = '';
       document.getElementById('education-entries').innerHTML = '';
-      document.getElementById('project-entries').innerHTML = '';
       document.getElementById('skill-entries').innerHTML = '';
       document.getElementById('certification-entries').innerHTML = '';
       document.getElementById('internship-entries').innerHTML = '';

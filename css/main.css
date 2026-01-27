@@ -274,6 +274,11 @@ body {
   resize: vertical;
 }
 
+.form-field input::placeholder,
+.form-field textarea::placeholder {
+  color: #c0c0c0;
+}
+
 /* Checkbox field */
 .form-field.checkbox-field {
   justify-content: flex-end;
@@ -413,6 +418,39 @@ body {
 .skill-item-input input:focus {
   outline: none;
   border-color: var(--theme-primary);
+}
+
+/* Work project items (nested under work experience) */
+.work-projects-list {
+  margin-top: 0.75rem;
+  padding-left: 0.5rem;
+}
+
+.work-project-item {
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: #fff;
+}
+
+.work-project-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.work-project-label {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--theme-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.work-project-item:only-child .btn-reorder {
+  display: none;
 }
 
 /* Buttons */

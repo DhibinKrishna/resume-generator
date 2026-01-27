@@ -243,6 +243,13 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
       (w.achievements || []).forEach(a => {
         if (a && a.trim()) addBullet(a);
       });
+      const filledProjects = (w.projects || []).filter(p => p.title || p.description);
+      filledProjects.forEach(p => {
+        addEntryHeader(p.title || '', formatDateRange(p.start_date, p.end_date));
+        if (p.description) addParagraph(p.description);
+        if (p.technologies) addSubtitle(`Technologies: ${p.technologies}`);
+        if (p.link) addParagraph(p.link);
+      });
     });
   }
 
@@ -257,20 +264,6 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
       if (e.gpa) addParagraph(`GPA: ${e.gpa}`);
     });
   }
-
-  // Projects
-  const filledProjects = (data.projects || []).filter(p => p.title || p.description);
-  if (filledProjects.length > 0) {
-    addSectionHeading('Projects');
-    filledProjects.forEach(p => {
-      addEntryHeader(p.title || '', '');
-      if (p.description) addParagraph(p.description);
-      if (p.technologies) addSubtitle(`Technologies: ${p.technologies}`);
-      if (p.link) addParagraph(p.link);
-    });
-  }
-
-
 
   // Certifications
   const filledCerts = (data.certifications || []).filter(c => c.name);

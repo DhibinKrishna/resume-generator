@@ -159,6 +159,23 @@ function createTables() {
     );
   `);
 
+  // Add columns for nesting projects under work experience
+  try {
+    db.run('ALTER TABLE projects ADD COLUMN work_experience_id INTEGER');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.run('ALTER TABLE projects ADD COLUMN start_date TEXT');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+  try {
+    db.run('ALTER TABLE projects ADD COLUMN end_date TEXT');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
   db.run(`
     CREATE TABLE IF NOT EXISTS skills (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -357,6 +374,7 @@ export async function saveWorkExperience(resumeId, entries) {
   const existing = queryAll('SELECT id FROM work_experience WHERE resume_id = ?', [resumeId]);
   for (const e of existing) {
     run('DELETE FROM work_achievements WHERE work_experience_id = ?', [e.id]);
+    run('DELETE FROM projects WHERE work_experience_id = ?', [e.id]);
   }
   run('DELETE FROM work_experience WHERE resume_id = ?', [resumeId]);
 
@@ -374,6 +392,15 @@ export async function saveWorkExperience(resumeId, entries) {
           [weId, entry.achievements[j], j]);
       }
     }
+
+    if (entry.projects) {
+      for (let j = 0; j < entry.projects.length; j++) {
+        const p = entry.projects[j];
+        run(`INSERT INTO projects (resume_id, work_experience_id, title, description, technologies, link, start_date, end_date, sort_order)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [resumeId, weId, p.title, p.description, p.technologies, p.link, p.start_date, p.end_date, j]);
+      }
+    }
   }
   run("UPDATE resumes SET updated_at = datetime('now') WHERE id = ?", [resumeId]);
   await persist();
@@ -384,7 +411,8 @@ export function getWorkExperience(resumeId) {
   return entries.map(e => ({
     ...e,
     achievements: queryAll('SELECT * FROM work_achievements WHERE work_experience_id = ? ORDER BY sort_order', [e.id])
-      .map(a => a.achievement)
+      .map(a => a.achievement),
+    projects: queryAll('SELECT * FROM projects WHERE work_experience_id = ? ORDER BY sort_order', [e.id])
   }));
 }
 
@@ -404,24 +432,6 @@ export async function saveEducation(resumeId, entries) {
 
 export function getEducation(resumeId) {
   return queryAll('SELECT * FROM education WHERE resume_id = ? ORDER BY sort_order', [resumeId]);
-}
-
-// ─── Projects ───────────────────────────────────────────────────
-
-export async function saveProjects(resumeId, entries) {
-  run('DELETE FROM projects WHERE resume_id = ?', [resumeId]);
-  for (let i = 0; i < entries.length; i++) {
-    const entry = entries[i];
-    run(`INSERT INTO projects (resume_id, title, description, technologies, link, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?)`,
-      [resumeId, entry.title, entry.description, entry.technologies, entry.link, i]);
-  }
-  run("UPDATE resumes SET updated_at = datetime('now') WHERE id = ?", [resumeId]);
-  await persist();
-}
-
-export function getProjects(resumeId) {
-  return queryAll('SELECT * FROM projects WHERE resume_id = ? ORDER BY sort_order', [resumeId]);
 }
 
 // ─── Skills ─────────────────────────────────────────────────────
@@ -562,7 +572,6 @@ export function loadResume(resumeId) {
     profileSummary: getProfileSummary(resumeId),
     workExperience: getWorkExperience(resumeId),
     education: getEducation(resumeId),
-    projects: getProjects(resumeId),
     skills: getSkills(resumeId),
     certifications: getCertifications(resumeId),
     internships: getInternships(resumeId),
@@ -593,7 +602,7 @@ export function exportDraft(resumeId) {
   const data = loadResume(resumeId);
   if (!data) return null;
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     resume: data,
   };
@@ -613,7 +622,9 @@ export async function importDraft(jsonData, resumeId) {
   if (r.profileSummary !== undefined) await saveProfileSummary(resumeId, r.profileSummary);
   if (r.workExperience) await saveWorkExperience(resumeId, r.workExperience);
   if (r.education) await saveEducation(resumeId, r.education);
-  if (r.projects) await saveProjects(resumeId, r.projects);
+  if (r.projects && !r.workExperience?.some(w => w.projects?.length)) {
+    console.warn('Draft contains top-level projects (old format). These will be skipped — projects are now nested under work experience.');
+  }
   if (r.skills) await saveSkills(resumeId, r.skills);
   if (r.certifications) await saveCertifications(resumeId, r.certifications);
   if (r.internships) await saveInternships(resumeId, r.internships);

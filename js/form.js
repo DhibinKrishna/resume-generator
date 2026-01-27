@@ -3,7 +3,6 @@
 let entryCounters = {
   work: 0,
   education: 0,
-  project: 0,
   skill: 0,
   certification: 0,
   internship: 0,
@@ -63,6 +62,10 @@ export function addWorkEntry(data = {}) {
       <label style="font-size:0.8rem;font-weight:500;color:var(--theme-text-light);text-transform:uppercase;letter-spacing:0.3px;">Achievements</label>
     </div>
     <button class="btn btn-add btn-small" data-action="add-achievement" data-work-index="${idx}">+ Add Achievement</button>
+    <div class="work-projects-list" data-work-index="${idx}">
+      <label style="font-size:0.8rem;font-weight:500;color:var(--theme-text-light);text-transform:uppercase;letter-spacing:0.3px;margin-top:0.75rem;display:block;">Projects</label>
+    </div>
+    <button class="btn btn-add btn-small" data-action="add-work-project" data-work-index="${idx}">+ Add Project</button>
   `;
 
   container.appendChild(block);
@@ -70,6 +73,11 @@ export function addWorkEntry(data = {}) {
   // Add existing achievements
   if (data.achievements && data.achievements.length > 0) {
     data.achievements.forEach(a => addAchievement(idx, a));
+  }
+
+  // Add existing projects
+  if (data.projects && data.projects.length > 0) {
+    data.projects.forEach(p => addWorkProject(idx, p));
   }
 
   return block;
@@ -90,6 +98,55 @@ export function addAchievement(workIndex, text = '') {
   // Focus the new input
   const input = item.querySelector('input');
   if (input && !text) input.focus();
+}
+
+export function addWorkProject(workIndex, data = {}) {
+  const container = document.querySelector(`.work-projects-list[data-work-index="${workIndex}"]`);
+  if (!container) return;
+
+  const item = document.createElement('div');
+  item.className = 'work-project-item';
+  item.innerHTML = `
+    <div class="work-project-item-header">
+      <span class="work-project-label">Project</span>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-work-project-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-work-project-down" title="Move down">↓</button>
+        <button class="btn btn-remove btn-small" data-action="remove-work-project">&times;</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Title</label>
+        <input type="text" data-section="work-project" data-work-index="${workIndex}" data-field="title" value="${esc(data.title)}" placeholder="Project Name">
+      </div>
+      <div class="form-field">
+        <label>Link</label>
+        <input type="text" data-section="work-project" data-work-index="${workIndex}" data-field="link" value="${esc(data.link)}" placeholder="https://github.com/...">
+      </div>
+    </div>
+    <div class="form-row triple">
+      <div class="form-field">
+        <label>Technologies</label>
+        <input type="text" data-section="work-project" data-work-index="${workIndex}" data-field="technologies" value="${esc(data.technologies)}" placeholder="React, Node.js, PostgreSQL">
+      </div>
+      <div class="form-field">
+        <label>Start Date</label>
+        <input type="text" data-section="work-project" data-work-index="${workIndex}" data-field="start_date" value="${esc(data.start_date)}" placeholder="Jan 2020">
+      </div>
+      <div class="form-field">
+        <label>End Date</label>
+        <input type="text" data-section="work-project" data-work-index="${workIndex}" data-field="end_date" value="${esc(data.end_date)}" placeholder="Jun 2020">
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-field">
+        <label>Description</label>
+        <textarea data-section="work-project" data-work-index="${workIndex}" data-field="description" placeholder="Brief description of the project...">${esc(data.description)}</textarea>
+      </div>
+    </div>
+  `;
+  container.appendChild(item);
 }
 
 export function removeWorkEntry(index) {
@@ -155,59 +212,6 @@ export function addEducationEntry(data = {}) {
 
 export function removeEducationEntry(index) {
   const container = document.getElementById('education-entries');
-  const block = container.querySelector(`.entry-block[data-index="${index}"]`);
-  if (block) block.remove();
-}
-
-// ─── Projects ───────────────────────────────────────────────────
-
-export function addProjectEntry(data = {}) {
-  const idx = entryCounters.project++;
-  const container = document.getElementById('project-entries');
-  const block = document.createElement('div');
-  block.className = 'entry-block';
-  block.dataset.index = idx;
-  block.dataset.section = 'project';
-
-  block.innerHTML = `
-    <div class="entry-block-header">
-      <span>Project #${idx + 1}</span>
-      <div class="entry-header-actions">
-        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
-        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
-        <button class="btn btn-remove" data-action="remove-project" data-index="${idx}">&times; Remove</button>
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-field">
-        <label>Title</label>
-        <input type="text" data-section="project" data-index="${idx}" data-field="title" value="${esc(data.title)}" placeholder="Project Name">
-      </div>
-      <div class="form-field">
-        <label>Link</label>
-        <input type="text" data-section="project" data-index="${idx}" data-field="link" value="${esc(data.link)}" placeholder="https://github.com/...">
-      </div>
-    </div>
-    <div class="form-row single">
-      <div class="form-field">
-        <label>Technologies</label>
-        <input type="text" data-section="project" data-index="${idx}" data-field="technologies" value="${esc(data.technologies)}" placeholder="React, Node.js, PostgreSQL">
-      </div>
-    </div>
-    <div class="form-row single">
-      <div class="form-field">
-        <label>Description</label>
-        <textarea data-section="project" data-index="${idx}" data-field="description" placeholder="Brief description of the project...">${esc(data.description)}</textarea>
-      </div>
-    </div>
-  `;
-
-  container.appendChild(block);
-  return block;
-}
-
-export function removeProjectEntry(index) {
-  const container = document.getElementById('project-entries');
   const block = container.querySelector(`.entry-block[data-index="${index}"]`);
   if (block) block.remove();
 }
@@ -527,14 +531,26 @@ export function collectWorkExperience() {
     block.querySelectorAll(`input[data-section="achievement"][data-work-index="${idx}"]`).forEach(input => {
       if (input.value.trim()) achievements.push(input.value.trim());
     });
+    const projects = [];
+    block.querySelectorAll(`.work-project-item`).forEach(projItem => {
+      projects.push({
+        title: valIn(projItem, '[data-field="title"]'),
+        link: valIn(projItem, '[data-field="link"]'),
+        technologies: valIn(projItem, '[data-field="technologies"]'),
+        start_date: valIn(projItem, '[data-field="start_date"]'),
+        end_date: valIn(projItem, '[data-field="end_date"]'),
+        description: valIn(projItem, 'textarea[data-field="description"]'),
+      });
+    });
     entries.push({
       company: valIn(block, '[data-field="company"]'),
       role: valIn(block, '[data-field="role"]'),
       location: valIn(block, '[data-field="location"]'),
       start_date: valIn(block, '[data-field="start_date"]'),
       end_date: valIn(block, '[data-field="end_date"]'),
-      description: valIn(block, 'textarea[data-field="description"]'),
+      description: valIn(block, 'textarea[data-section="work"][data-field="description"]'),
       achievements,
+      projects,
     });
   });
   return entries;
@@ -550,19 +566,6 @@ export function collectEducation() {
       start_date: valIn(block, '[data-field="start_date"]'),
       end_date: valIn(block, '[data-field="end_date"]'),
       gpa: valIn(block, '[data-field="gpa"]'),
-    });
-  });
-  return entries;
-}
-
-export function collectProjects() {
-  const entries = [];
-  document.querySelectorAll('#project-entries .entry-block').forEach(block => {
-    entries.push({
-      title: valIn(block, '[data-field="title"]'),
-      description: valIn(block, 'textarea[data-field="description"]'),
-      technologies: valIn(block, '[data-field="technologies"]'),
-      link: valIn(block, '[data-field="link"]'),
     });
   });
   return entries;

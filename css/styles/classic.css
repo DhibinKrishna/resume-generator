@@ -187,6 +187,20 @@
   color: #555;
 }
 
+/* Nested work projects */
+.resume-work-project {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--theme-primary);
+}
+
+.resume-work-project-title {
+  font-weight: 600;
+  font-size: 10pt;
+  color: #333;
+}
+
 /* Projects */
 .resume-project-tech {
   font-size: 9pt;

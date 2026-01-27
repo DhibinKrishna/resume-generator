@@ -5,7 +5,6 @@ export function renderClassic(data, theme) {
   const summary = data.profileSummary || '';
   const work = data.workExperience || [];
   const edu = data.education || [];
-  const projects = data.projects || [];
   const skills = data.skills || [];
   const certs = data.certifications || [];
   const internships = data.internships || [];
@@ -15,7 +14,7 @@ export function renderClassic(data, theme) {
   let html = '';
 
   // Top banner
-  html += `<div class="resume-banner" style="background:${esc(theme)}">`;
+  html += `<div class="resume-banner">`;
   html += `<div class="name">${esc(pi.full_name || 'Your Name')}</div>`;
   if (pi.job_title) {
     html += `<div class="job-title">${esc(pi.job_title)}</div>`;
@@ -91,6 +90,27 @@ export function renderClassic(data, theme) {
         });
         html += `</ul>`;
       }
+      const filledProjects = (w.projects || []).filter(p => p.title || p.description);
+      if (filledProjects.length > 0) {
+        filledProjects.forEach(p => {
+          html += `<div class="resume-work-project">`;
+          html += `<div class="resume-entry-header">`;
+          html += `<span class="resume-work-project-title">${esc(p.title)}</span>`;
+          const projDate = formatDateRange(p.start_date, p.end_date);
+          if (projDate) html += `<span class="resume-entry-date">${projDate}</span>`;
+          html += `</div>`;
+          if (p.description) {
+            html += `<p class="resume-summary">${esc(p.description)}</p>`;
+          }
+          if (p.technologies) {
+            html += `<div class="resume-project-tech">Technologies: ${esc(p.technologies)}</div>`;
+          }
+          if (p.link) {
+            html += `<div class="resume-project-link"><a href="${esc(p.link)}" target="_blank">${esc(p.link)}</a></div>`;
+          }
+          html += `</div>`;
+        });
+      }
       html += `</div>`;
     });
   }
@@ -116,30 +136,6 @@ export function renderClassic(data, theme) {
       html += `</div>`;
     });
   }
-
-  // Projects
-  const filledProjects = projects.filter(p => p.title || p.description);
-  if (filledProjects.length > 0) {
-    html += sectionTitle('Projects');
-    filledProjects.forEach(p => {
-      html += `<div class="resume-entry">`;
-      html += `<div class="resume-entry-header">`;
-      html += `<span class="resume-entry-title">${esc(p.title)}</span>`;
-      html += `</div>`;
-      if (p.description) {
-        html += `<p class="resume-summary">${esc(p.description)}</p>`;
-      }
-      if (p.technologies) {
-        html += `<div class="resume-project-tech">Technologies: ${esc(p.technologies)}</div>`;
-      }
-      if (p.link) {
-        html += `<div class="resume-project-link"><a href="${esc(p.link)}" target="_blank">${esc(p.link)}</a></div>`;
-      }
-      html += `</div>`;
-    });
-  }
-
-
 
   // Certifications
   const filledCerts = certs.filter(c => c.name);
