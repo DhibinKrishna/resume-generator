@@ -1,0 +1,12 @@
+/* Theme system using CSS custom properties */
+:root {
+  --theme-primary: #5B7B7A;
+  --theme-primary-light: #7a9e9d;
+  --theme-primary-dark: #455f5e;
+  --theme-text: #333333;
+  --theme-text-light: #666666;
+  --theme-bg: #ffffff;
+  --theme-border: #e0e0e0;
+  --theme-input-bg: #f9f9f9;
+  --theme-section-bg: #f5f5f5;
+}

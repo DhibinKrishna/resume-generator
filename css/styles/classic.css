@@ -1,0 +1,233 @@
+/* Classic Professional resume render style */
+
+.resume-page {
+  width: 210mm;
+  background: #fff;
+  color: #333;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Top banner with name and job title */
+.resume-banner {
+  background: var(--theme-primary);
+  color: #fff;
+  padding: 2rem 2.5rem;
+  text-align: left;
+}
+
+.resume-banner .name {
+  font-size: 24pt;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 0.25rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.resume-banner .job-title {
+  font-size: 13pt;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Contact info bar */
+.resume-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.75rem 2.5rem;
+  background: #f8f8f8;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 9pt;
+  color: #555;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.resume-contact span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.resume-contact span::before {
+  color: var(--theme-primary);
+  font-weight: bold;
+}
+
+/* Left accent stripe */
+.resume-body {
+  padding: 1.5rem 2.5rem 2rem 2.5rem;
+  border-left: 4px solid var(--theme-primary);
+  margin-left: 0;
+}
+
+/* Section headings */
+.resume-section-title {
+  font-size: 12pt;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--theme-primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.25rem;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.resume-section-title:first-child {
+  margin-top: 0;
+}
+
+.resume-section-divider {
+  border: none;
+  border-top: 1.5px solid var(--theme-primary);
+  margin-bottom: 0.75rem;
+  opacity: 0.5;
+}
+
+/* Profile summary */
+.resume-summary {
+  text-align: justify;
+  margin-bottom: 0.5rem;
+  color: #444;
+}
+
+/* Work experience entries */
+.resume-entry {
+  margin-bottom: 1rem;
+}
+
+.resume-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.15rem;
+}
+
+.resume-entry-title {
+  font-weight: 700;
+  font-size: 11pt;
+  color: #222;
+}
+
+.resume-entry-date {
+  font-size: 9pt;
+  color: #666;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.resume-entry-subtitle {
+  font-style: italic;
+  color: #555;
+  font-size: 10pt;
+  margin-bottom: 0.3rem;
+}
+
+/* Bullet lists */
+.resume-bullets {
+  list-style: disc;
+  padding-left: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.resume-bullets li {
+  margin-bottom: 0.2rem;
+  text-align: justify;
+  color: #444;
+}
+
+/* Skills section */
+.resume-skills-category {
+  margin-bottom: 0.5rem;
+}
+
+.resume-skills-label {
+  font-weight: 700;
+  color: var(--theme-primary-dark);
+  font-size: 10pt;
+}
+
+.resume-skills-items {
+  color: #444;
+}
+
+/* Education */
+.resume-edu-details {
+  font-size: 9.5pt;
+  color: #555;
+}
+
+/* Projects */
+.resume-project-tech {
+  font-size: 9pt;
+  color: var(--theme-primary);
+  font-style: italic;
+  margin-top: 0.1rem;
+}
+
+.resume-project-link {
+  font-size: 9pt;
+  color: var(--theme-primary);
+}
+
+.resume-project-link a {
+  color: var(--theme-primary);
+  text-decoration: none;
+}
+
+.resume-project-link a:hover {
+  text-decoration: underline;
+}
+
+/* Certifications, Languages */
+.resume-cert-item,
+.resume-lang-item {
+  margin-bottom: 0.3rem;
+}
+
+.resume-cert-org,
+.resume-lang-proficiency {
+  font-style: italic;
+  color: #666;
+  font-size: 9.5pt;
+}
+
+/* Internship entries - same as work experience */
+.resume-internship-desc {
+  text-align: justify;
+  color: #444;
+  margin-top: 0.2rem;
+}
+
+/* Mid-page banner (between sections) */
+.resume-mid-banner {
+  background: var(--theme-primary);
+  color: #fff;
+  padding: 0.75rem 2.5rem;
+  margin: 1rem -2.5rem;
+  font-size: 10pt;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Custom sections */
+.resume-custom-item {
+  margin-bottom: 0.2rem;
+  color: #444;
+}
+
+/* Print adjustments */
+@media print {
+  .resume-page {
+    width: auto;
+    min-height: auto;
+    box-shadow: none;
+  }
+}

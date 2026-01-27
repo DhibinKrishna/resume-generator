@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Preview</title>
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/styles/classic.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #e8e8e8;
+      color: #333;
+    }
+
+    .preview-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 0.75rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .preview-toolbar a {
+      color: var(--theme-primary);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .preview-toolbar a:hover {
+      text-decoration: underline;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--theme-primary);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(0.9);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--theme-primary);
+      border: 1px solid var(--theme-primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0,0,0,0.03);
+    }
+
+    .preview-container {
+      max-width: 210mm;
+      margin: 2rem auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      background: #fff;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .loading-overlay.hidden {
+      display: none;
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e0e0e0;
+      border-top-color: var(--theme-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media print {
+      .preview-toolbar {
+        display: none;
+      }
+      .preview-container {
+        margin: 0;
+        box-shadow: none;
+      }
+      body {
+        background: #fff;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p>Loading preview...</p>
+  </div>
+
+  <div class="preview-toolbar">
+    <a href="index.html">&larr; Back to Edit</a>
+    <div class="preview-actions">
+      <button class="btn btn-primary" id="btn-download-pdf">Download PDF</button>
+      <button class="btn btn-secondary" id="btn-download-docx">Download DOCX</button>
+    </div>
+  </div>
+
+  <div class="preview-container" id="resume-preview">
+  </div>
+
+  <!-- sql.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+  <!-- html2pdf.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- docx CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
+
+  <script type="module">
+    import { initDB } from './js/db.js';
+    import { renderResume, getResumeData } from './js/renderer.js';
+    import { downloadPDF } from './js/export-pdf.js';
+    import { downloadDOCX } from './js/export-docx.js';
+
+    async function init() {
+      try {
+        await initDB();
+
+        // Get resume ID from URL params
+        const params = new URLSearchParams(window.location.search);
+        const resumeId = parseInt(params.get('id'), 10);
+
+        if (!resumeId) {
+          document.getElementById('resume-preview').innerHTML = '<p style="padding:2rem;">No resume selected. <a href="index.html">Go back</a>.</p>';
+          document.getElementById('loading').classList.add('hidden');
+          return;
+        }
+
+        // Apply theme color
+        const data = getResumeData(resumeId);
+        if (data && data.config && data.config.theme) {
+          document.documentElement.style.setProperty('--theme-primary', data.config.theme);
+          const color = data.config.theme;
+          const r = parseInt(color.slice(1, 3), 16);
+          const g = parseInt(color.slice(3, 5), 16);
+          const b = parseInt(color.slice(5, 7), 16);
+          document.documentElement.style.setProperty('--theme-primary-light',
+            `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`);
+          document.documentElement.style.setProperty('--theme-primary-dark',
+            `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`);
+        }
+
+        // Render resume
+        const html = renderResume(resumeId);
+        document.getElementById('resume-preview').innerHTML = html;
+
+        // PDF download
+        document.getElementById('btn-download-pdf').addEventListener('click', async () => {
+          const el = document.getElementById('resume-preview');
+          const name = data?.personalInfo?.full_name || 'resume';
+          await downloadPDF(el, `${name.replace(/\s+/g, '_')}_resume.pdf`);
+        });
+
+        // DOCX download
+        document.getElementById('btn-download-docx').addEventListener('click', async () => {
+          const name = data?.personalInfo?.full_name || 'resume';
+          await downloadDOCX(data, `${name.replace(/\s+/g, '_')}_resume.docx`);
+        });
+
+        document.getElementById('loading').classList.add('hidden');
+      } catch (err) {
+        console.error('Preview failed:', err);
+        document.getElementById('loading').innerHTML =
+          '<p style="color:#c0392b;">Failed to load preview. <a href="index.html">Go back</a>.</p>';
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

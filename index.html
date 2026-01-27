@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Generator</title>
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p>Initializing database...</p>
+  </div>
+
+  <header class="site-header">
+    <h1>Resume Generator</h1>
+  </header>
+
+  <main class="container">
+
+    <!-- Style & Theme Config -->
+    <div class="config-bar">
+      <div class="config-group">
+        <label for="style-select">Style:</label>
+        <select id="style-select">
+          <option value="classic">Classic Professional</option>
+        </select>
+      </div>
+      <div class="config-group">
+        <label>Theme:</label>
+        <div class="theme-swatches" id="theme-swatches">
+          <button class="theme-swatch active" data-color="#5B7B7A" style="background:#5B7B7A" title="Teal Slate"></button>
+          <button class="theme-swatch" data-color="#2C3E6B" style="background:#2C3E6B" title="Navy Blue"></button>
+          <button class="theme-swatch" data-color="#7B2D3F" style="background:#7B2D3F" title="Burgundy"></button>
+          <button class="theme-swatch" data-color="#3B6B4F" style="background:#3B6B4F" title="Forest Green"></button>
+          <button class="theme-swatch" data-color="#4A4A4A" style="background:#4A4A4A" title="Charcoal"></button>
+          <button class="theme-swatch" data-color="#3366CC" style="background:#3366CC" title="Royal Blue"></button>
+          <label class="theme-picker-wrapper" title="Custom color">
+            <input type="color" id="theme-color-picker" value="#5B7B7A">
+          </label>
+        </div>
+        <div class="theme-hex-input">
+          <span>#</span>
+          <input type="text" id="theme-hex-input" value="5B7B7A" maxlength="6" placeholder="5B7B7A">
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Info -->
+    <section class="form-section" id="section-personal">
+      <div class="form-section-header">
+        <h2>Personal Information</h2>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="pi-fullname">Full Name</label>
+          <input type="text" id="pi-fullname" data-field="full_name" placeholder="John Doe">
+        </div>
+        <div class="form-field">
+          <label for="pi-jobtitle">Job Title</label>
+          <input type="text" id="pi-jobtitle" data-field="job_title" placeholder="Software Engineer">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="pi-email">Email</label>
+          <input type="email" id="pi-email" data-field="email" placeholder="john@example.com">
+        </div>
+        <div class="form-field">
+          <label for="pi-phone">Phone</label>
+          <input type="tel" id="pi-phone" data-field="phone" placeholder="+1 (555) 123-4567">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label for="pi-location">Location</label>
+          <input type="text" id="pi-location" data-field="location" placeholder="New York, NY">
+        </div>
+        <div class="form-field">
+          <label for="pi-linkedin">LinkedIn</label>
+          <input type="text" id="pi-linkedin" data-field="linkedin" placeholder="linkedin.com/in/johndoe">
+        </div>
+      </div>
+      <div class="form-row single">
+        <div class="form-field">
+          <label for="pi-portfolio">Portfolio / Website</label>
+          <input type="text" id="pi-portfolio" data-field="portfolio" placeholder="johndoe.dev">
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile Summary -->
+    <section class="form-section" id="section-summary">
+      <div class="form-section-header">
+        <h2>Profile Summary</h2>
+      </div>
+      <div class="form-row single">
+        <div class="form-field">
+          <textarea id="profile-summary" placeholder="A brief professional summary highlighting your key qualifications and career objectives..."></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Work Experience -->
+    <section class="form-section" id="section-work">
+      <div class="form-section-header">
+        <h2>Work Experience</h2>
+      </div>
+      <div id="work-entries"></div>
+      <button class="btn btn-add" id="btn-add-work">+ Add Work Experience</button>
+    </section>
+
+    <!-- Education -->
+    <section class="form-section" id="section-education">
+      <div class="form-section-header">
+        <h2>Education</h2>
+      </div>
+      <div id="education-entries"></div>
+      <button class="btn btn-add" id="btn-add-education">+ Add Education</button>
+    </section>
+
+    <!-- Projects -->
+    <section class="form-section" id="section-projects">
+      <div class="form-section-header">
+        <h2>Projects</h2>
+      </div>
+      <div id="project-entries"></div>
+      <button class="btn btn-add" id="btn-add-project">+ Add Project</button>
+    </section>
+
+    <!-- Skills -->
+    <section class="form-section" id="section-skills">
+      <div class="form-section-header">
+        <h2>Skills</h2>
+      </div>
+      <div id="skill-entries"></div>
+      <button class="btn btn-add" id="btn-add-skill">+ Add Skill Category</button>
+    </section>
+
+    <!-- Certifications -->
+    <section class="form-section" id="section-certifications">
+      <div class="form-section-header">
+        <h2>Certifications</h2>
+      </div>
+      <div id="certification-entries"></div>
+      <button class="btn btn-add" id="btn-add-certification">+ Add Certification</button>
+    </section>
+
+    <!-- Internships -->
+    <section class="form-section" id="section-internships">
+      <div class="form-section-header">
+        <h2>Internships</h2>
+      </div>
+      <div id="internship-entries"></div>
+      <button class="btn btn-add" id="btn-add-internship">+ Add Internship</button>
+    </section>
+
+    <!-- Languages -->
+    <section class="form-section" id="section-languages">
+      <div class="form-section-header">
+        <h2>Languages</h2>
+      </div>
+      <div id="language-entries"></div>
+      <button class="btn btn-add" id="btn-add-language">+ Add Language</button>
+    </section>
+
+    <!-- Custom Sections -->
+    <section class="form-section" id="section-custom">
+      <div class="form-section-header">
+        <h2>Custom Sections</h2>
+      </div>
+      <div id="custom-section-entries"></div>
+      <button class="btn btn-add" id="btn-add-custom-section">+ Add Custom Section</button>
+    </section>
+
+    <!-- Action Bar -->
+    <div class="action-bar">
+      <button class="btn btn-secondary" id="btn-save-draft">Save Draft</button>
+      <button class="btn btn-primary" id="btn-generate">Preview Resume &rarr;</button>
+    </div>
+
+  </main>
+
+  <!-- sql.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
