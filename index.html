@@ -19,32 +19,26 @@
 
   <main class="container">
 
-    <!-- Style & Theme Config -->
-    <div class="config-bar">
-      <div class="config-group">
-        <label for="style-select">Style:</label>
-        <select id="style-select">
-          <option value="classic">Classic Professional</option>
-        </select>
+    <!-- Utility Bar -->
+    <div class="utility-bar">
+      <div class="utility-group">
+        <button class="btn btn-small btn-outline" id="btn-export-draft" title="Export draft as JSON">
+          📤 Export Draft
+        </button>
+        <label class="btn btn-small btn-outline" id="btn-import-draft-label" title="Import draft from JSON">
+          📥 Import Draft
+          <input type="file" id="btn-import-draft" accept=".json" style="display:none">
+        </label>
       </div>
-      <div class="config-group">
-        <label>Theme:</label>
-        <div class="theme-swatches" id="theme-swatches">
-          <button class="theme-swatch active" data-color="#5B7B7A" style="background:#5B7B7A" title="Teal Slate"></button>
-          <button class="theme-swatch" data-color="#2C3E6B" style="background:#2C3E6B" title="Navy Blue"></button>
-          <button class="theme-swatch" data-color="#7B2D3F" style="background:#7B2D3F" title="Burgundy"></button>
-          <button class="theme-swatch" data-color="#3B6B4F" style="background:#3B6B4F" title="Forest Green"></button>
-          <button class="theme-swatch" data-color="#4A4A4A" style="background:#4A4A4A" title="Charcoal"></button>
-          <button class="theme-swatch" data-color="#3366CC" style="background:#3366CC" title="Royal Blue"></button>
-          <label class="theme-picker-wrapper" title="Custom color">
-            <input type="color" id="theme-color-picker" value="#5B7B7A">
-          </label>
-        </div>
-        <div class="theme-hex-input">
-          <span>#</span>
-          <input type="text" id="theme-hex-input" value="5B7B7A" maxlength="6" placeholder="5B7B7A">
-        </div>
-      </div>
+      <button class="btn btn-small btn-danger" id="btn-clear-all" title="Clear all data">
+        🗑️ Clear All
+      </button>
+    </div>
+
+    <!-- Top Action Bar -->
+    <div class="action-bar action-bar-top">
+      <button class="btn btn-secondary" id="btn-save-draft-top">Save Draft</button>
+      <button class="btn btn-primary" id="btn-generate-top">Preview Resume &rarr;</button>
     </div>
 
     <!-- Personal Info -->
@@ -103,21 +97,22 @@
     </section>
 
     <!-- Work Experience -->
+    <!-- Skills -->
+    <section class="form-section" id="section-skills">
+      <div class="form-section-header">
+        <h2>Skills</h2>
+      </div>
+      <div id="skill-entries"></div>
+      <button class="btn btn-add" id="btn-add-skill">+ Add Skill Category</button>
+    </section>
+
+    <!-- Work Experience -->
     <section class="form-section" id="section-work">
       <div class="form-section-header">
         <h2>Work Experience</h2>
       </div>
       <div id="work-entries"></div>
       <button class="btn btn-add" id="btn-add-work">+ Add Work Experience</button>
-    </section>
-
-    <!-- Education -->
-    <section class="form-section" id="section-education">
-      <div class="form-section-header">
-        <h2>Education</h2>
-      </div>
-      <div id="education-entries"></div>
-      <button class="btn btn-add" id="btn-add-education">+ Add Education</button>
     </section>
 
     <!-- Projects -->
@@ -127,15 +122,6 @@
       </div>
       <div id="project-entries"></div>
       <button class="btn btn-add" id="btn-add-project">+ Add Project</button>
-    </section>
-
-    <!-- Skills -->
-    <section class="form-section" id="section-skills">
-      <div class="form-section-header">
-        <h2>Skills</h2>
-      </div>
-      <div id="skill-entries"></div>
-      <button class="btn btn-add" id="btn-add-skill">+ Add Skill Category</button>
     </section>
 
     <!-- Certifications -->
@@ -154,6 +140,15 @@
       </div>
       <div id="internship-entries"></div>
       <button class="btn btn-add" id="btn-add-internship">+ Add Internship</button>
+    </section>
+
+    <!-- Education -->
+    <section class="form-section" id="section-education">
+      <div class="form-section-header">
+        <h2>Education</h2>
+      </div>
+      <div id="education-entries"></div>
+      <button class="btn btn-add" id="btn-add-education">+ Add Education</button>
     </section>
 
     <!-- Languages -->

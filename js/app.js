@@ -5,7 +5,7 @@ import {
   savePersonalInfo, saveProfileSummary, saveWorkExperience,
   saveEducation, saveProjects, saveSkills, saveCertifications,
   saveInternships, saveLanguages, saveCustomSections,
-  loadResume,
+  loadResume, clearAllData, exportDraft, importDraft,
 } from './db.js';
 
 import {
@@ -57,13 +57,13 @@ function hideLoading() {
 // ─── Populate form from saved data ──────────────────────────────
 
 function populateForm(data) {
-  // Config
+  // Config - store values but don't try to set elements that don't exist
   if (data.config) {
     currentStyle = data.config.style || 'classic';
     currentTheme = data.config.theme || '#5B7B7A';
-    document.getElementById('style-select').value = currentStyle;
+    const styleSelect = document.getElementById('style-select');
+    if (styleSelect) styleSelect.value = currentStyle;
     setActiveTheme(currentTheme);
-    applyThemeColor(currentTheme);
   }
 
   // Personal info
@@ -130,14 +130,17 @@ function setVal(selector, value) {
   if (el && value) el.value = value;
 }
 
-// ─── Theme management ───────────────────────────────────────────
+// ─── Theme management (used only for populateForm) ──────────────
 
 function setActiveTheme(color) {
-  const isPreset = [...document.querySelectorAll('.theme-swatch')].some(s => s.dataset.color === color);
-  document.querySelectorAll('.theme-swatch').forEach(swatch => {
-    swatch.classList.toggle('active', swatch.dataset.color === color);
-  });
-  // Sync color picker and hex input
+  // Only runs when style-select exists (on main page with config bar)
+  const swatches = document.querySelectorAll('.theme-swatch');
+  if (swatches.length > 0) {
+    swatches.forEach(swatch => {
+      swatch.classList.toggle('active', swatch.dataset.color === color);
+    });
+  }
+  // Sync color picker and hex input if they exist
   const picker = document.getElementById('theme-color-picker');
   const hexInput = document.getElementById('theme-hex-input');
   if (picker) picker.value = color;
@@ -145,67 +148,50 @@ function setActiveTheme(color) {
 }
 
 function applyThemeColor(color) {
-  document.documentElement.style.setProperty('--theme-primary', color);
-  // Derive lighter and darker shades
-  const r = parseInt(color.slice(1, 3), 16);
-  const g = parseInt(color.slice(3, 5), 16);
-  const b = parseInt(color.slice(5, 7), 16);
-  const lighter = `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`;
-  const darker = `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`;
-  document.documentElement.style.setProperty('--theme-primary-light', lighter);
-  document.documentElement.style.setProperty('--theme-primary-dark', darker);
+  // Theme is applied on preview page, not main page
+  // Main page uses neutral header
+}
+
+// ─── Entry reordering ───────────────────────────────────────────
+
+function moveEntryUp(btn) {
+  const entryBlock = btn.closest('.entry-block');
+  if (!entryBlock) return;
+  
+  const prev = entryBlock.previousElementSibling;
+  if (prev && prev.classList.contains('entry-block')) {
+    entryBlock.parentNode.insertBefore(entryBlock, prev);
+    updateEntryNumbers(entryBlock.parentNode);
+  }
+}
+
+function moveEntryDown(btn) {
+  const entryBlock = btn.closest('.entry-block');
+  if (!entryBlock) return;
+  
+  const next = entryBlock.nextElementSibling;
+  if (next && next.classList.contains('entry-block')) {
+    entryBlock.parentNode.insertBefore(next, entryBlock);
+    updateEntryNumbers(entryBlock.parentNode);
+  }
+}
+
+function updateEntryNumbers(container) {
+  const blocks = container.querySelectorAll('.entry-block');
+  blocks.forEach((block, i) => {
+    const headerSpan = block.querySelector('.entry-block-header span');
+    if (headerSpan) {
+      // Extract the label text (e.g., "Work Experience", "Education")
+      const text = headerSpan.textContent;
+      const label = text.replace(/#\d+$/, '').trim();
+      headerSpan.textContent = `${label} #${i + 1}`;
+    }
+  });
 }
 
 // ─── Event binding ──────────────────────────────────────────────
 
 function bindEvents() {
-  // Theme swatches
-  document.getElementById('theme-swatches').addEventListener('click', (e) => {
-    const swatch = e.target.closest('.theme-swatch');
-    if (!swatch) return;
-    currentTheme = swatch.dataset.color;
-    setActiveTheme(currentTheme);
-    applyThemeColor(currentTheme);
-    updateResumeConfig(resumeId, currentStyle, currentTheme);
-  });
-
-  // Color picker
-  document.getElementById('theme-color-picker').addEventListener('input', (e) => {
-    currentTheme = e.target.value;
-    setActiveTheme(currentTheme);
-    applyThemeColor(currentTheme);
-  });
-  document.getElementById('theme-color-picker').addEventListener('change', (e) => {
-    currentTheme = e.target.value;
-    setActiveTheme(currentTheme);
-    applyThemeColor(currentTheme);
-    updateResumeConfig(resumeId, currentStyle, currentTheme);
-  });
-
-  // Hex text input
-  const hexInput = document.getElementById('theme-hex-input');
-  hexInput.addEventListener('input', (e) => {
-    let v = e.target.value.replace(/[^0-9a-fA-F]/g, '').slice(0, 6);
-    e.target.value = v.toUpperCase();
-    if (v.length === 6) {
-      currentTheme = '#' + v;
-      setActiveTheme(currentTheme);
-      applyThemeColor(currentTheme);
-    }
-  });
-  hexInput.addEventListener('change', () => {
-    if (/^[0-9a-fA-F]{6}$/.test(hexInput.value)) {
-      currentTheme = '#' + hexInput.value;
-      updateResumeConfig(resumeId, currentStyle, currentTheme);
-    }
-  });
-
-  // Style selector
-  document.getElementById('style-select').addEventListener('change', (e) => {
-    currentStyle = e.target.value;
-    updateResumeConfig(resumeId, currentStyle, currentTheme);
-  });
-
   // Add buttons
   document.getElementById('btn-add-work').addEventListener('click', () => addWorkEntry());
   document.getElementById('btn-add-education').addEventListener('click', () => addEducationEntry());
@@ -221,6 +207,16 @@ function bindEvents() {
     const btn = e.target.closest('[data-action]');
     if (!btn) return;
     const action = btn.dataset.action;
+
+    const sectionRemovals = [
+      'remove-work', 'remove-education', 'remove-project', 
+      'remove-skill', 'remove-certification', 'remove-internship', 
+      'remove-language', 'remove-custom-section'
+    ];
+
+    if (sectionRemovals.includes(action)) {
+      if (!confirm('Are you sure you want to remove this entry?')) return;
+    }
 
     switch (action) {
       case 'remove-work':
@@ -276,6 +272,14 @@ function bindEvents() {
         btn.closest('.achievement-item').remove();
         debounceSave();
         break;
+      case 'move-up':
+        moveEntryUp(btn);
+        debounceSave();
+        break;
+      case 'move-down':
+        moveEntryDown(btn);
+        debounceSave();
+        break;
     }
   });
 
@@ -286,14 +290,26 @@ function bindEvents() {
     }
   });
 
-  // Save draft button
+  // Save draft button (bottom)
   document.getElementById('btn-save-draft').addEventListener('click', async () => {
     await saveAll();
     showToast('Draft saved successfully');
   });
 
-  // Generate resume button
+  // Save draft button (top)
+  document.getElementById('btn-save-draft-top').addEventListener('click', async () => {
+    await saveAll();
+    showToast('Draft saved successfully');
+  });
+
+  // Generate resume button (bottom)
   document.getElementById('btn-generate').addEventListener('click', async () => {
+    await saveAll();
+    window.location.href = `preview.html?id=${resumeId}`;
+  });
+
+  // Generate resume button (top)
+  document.getElementById('btn-generate-top').addEventListener('click', async () => {
     await saveAll();
     window.location.href = `preview.html?id=${resumeId}`;
   });
@@ -346,6 +362,91 @@ function showToast(message) {
     toast.classList.add('toast-hidden');
   }, 2000);
 }
+
+// ─── Export Draft ───────────────────────────────────────────────
+
+function handleExportDraft() {
+  if (!resumeId) {
+    showToast('No resume to export');
+    return;
+  }
+  
+  const data = exportDraft(resumeId);
+  if (!data) {
+    showToast('Export failed');
+    return;
+  }
+  
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const name = data.resume?.personalInfo?.full_name || 'resume';
+  const cleanName = name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  a.download = `${cleanName}_draft_${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Draft exported!');
+}
+
+// ─── Import Draft ───────────────────────────────────────────────
+
+async function handleImportDraft(file) {
+  if (!file) return;
+  
+  try {
+    const text = await file.text();
+    const jsonData = JSON.parse(text);
+    await importDraft(jsonData, resumeId);
+    
+    // Reload form with imported data
+    const data = loadResume(resumeId);
+    if (data) {
+      resetCounters();
+      // Clear existing form entries
+      document.getElementById('work-entries').innerHTML = '';
+      document.getElementById('education-entries').innerHTML = '';
+      document.getElementById('project-entries').innerHTML = '';
+      document.getElementById('skill-entries').innerHTML = '';
+      document.getElementById('certification-entries').innerHTML = '';
+      document.getElementById('internship-entries').innerHTML = '';
+      document.getElementById('language-entries').innerHTML = '';
+      document.getElementById('custom-section-entries').innerHTML = '';
+      
+      populateForm(data);
+    }
+    
+    showToast('Draft imported!');
+  } catch (err) {
+    console.error('Import failed:', err);
+    showToast('Import failed: Invalid file');
+  }
+}
+
+// ─── Clear All Data ─────────────────────────────────────────────
+
+async function handleClearAll() {
+  const confirmed = confirm('Are you sure you want to clear ALL data? This cannot be undone!');
+  if (!confirmed) return;
+  
+  try {
+    await clearAllData();
+    // Reload page to show fresh state
+    window.location.reload();
+  } catch (err) {
+    console.error('Clear failed:', err);
+    showToast('Failed to clear data');
+  }
+}
+
+// ─── Bind utility buttons ───────────────────────────────────────
+
+document.getElementById('btn-export-draft')?.addEventListener('click', handleExportDraft);
+document.getElementById('btn-import-draft')?.addEventListener('change', (e) => {
+  handleImportDraft(e.target.files[0]);
+  e.target.value = ''; // Reset so same file can be imported again
+});
+document.getElementById('btn-clear-all')?.addEventListener('click', handleClearAll);
 
 // ─── Start ──────────────────────────────────────────────────────
 

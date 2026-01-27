@@ -45,6 +45,28 @@ export function renderClassic(data, theme) {
     html += `<p class="resume-summary">${esc(summary)}</p>`;
   }
 
+  // Skills
+  const filledSkills = skills.filter(s => s.category || (s.items && s.items.length > 0));
+  if (filledSkills.length > 0) {
+    html += sectionTitle('Skills');
+    filledSkills.forEach(s => {
+      html += `<div class="resume-skills-category">`;
+      html += `<span class="resume-skills-label">${esc(s.category)}: </span>`;
+      if (s.bulleted && s.items && s.items.length > 0) {
+        // Bulleted view
+        html += `<ul class="resume-skills-bullets">`;
+        s.items.forEach(item => {
+          html += `<li>${esc(item)}</li>`;
+        });
+        html += `</ul>`;
+      } else {
+        // Comma-separated (default)
+        html += `<span class="resume-skills-items">${esc((s.items || []).join(', '))}</span>`;
+      }
+      html += `</div>`;
+    });
+  }
+
   // Work Experience
   const filledWork = work.filter(w => w.company || w.role);
   if (filledWork.length > 0) {
@@ -58,6 +80,9 @@ export function renderClassic(data, theme) {
       html += `</div>`;
       if (w.location) {
         html += `<div class="resume-entry-subtitle">${esc(w.location)}</div>`;
+      }
+      if (w.description && w.description.trim()) {
+        html += `<p class="resume-work-desc">${esc(w.description)}</p>`;
       }
       if (w.achievements && w.achievements.length > 0) {
         html += `<ul class="resume-bullets">`;
@@ -114,17 +139,7 @@ export function renderClassic(data, theme) {
     });
   }
 
-  // Skills
-  const filledSkills = skills.filter(s => s.category || (s.items && s.items.length > 0));
-  if (filledSkills.length > 0) {
-    html += sectionTitle('Skills');
-    filledSkills.forEach(s => {
-      html += `<div class="resume-skills-category">`;
-      html += `<span class="resume-skills-label">${esc(s.category)}: </span>`;
-      html += `<span class="resume-skills-items">${esc((s.items || []).join(', '))}</span>`;
-      html += `</div>`;
-    });
-  }
+
 
   // Certifications
   const filledCerts = certs.filter(c => c.name);
@@ -164,7 +179,7 @@ export function renderClassic(data, theme) {
     html += sectionTitle('Languages');
     filledLangs.forEach(l => {
       html += `<div class="resume-lang-item">`;
-      html += `<strong>${esc(l.language)}</strong>`;
+      html += `<span class="resume-lang-name">${esc(l.language)}</span>`;
       if (l.proficiency) html += ` <span class="resume-lang-proficiency">— ${esc(l.proficiency)}</span>`;
       html += `</div>`;
     });

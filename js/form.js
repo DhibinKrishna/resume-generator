@@ -23,7 +23,11 @@ export function addWorkEntry(data = {}) {
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Work Experience #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-work" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-work" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-field">
@@ -47,6 +51,12 @@ export function addWorkEntry(data = {}) {
       <div class="form-field">
         <label>End Date</label>
         <input type="text" data-section="work" data-index="${idx}" data-field="end_date" value="${esc(data.end_date)}" placeholder="Present">
+      </div>
+    </div>
+    <div class="form-row single">
+      <div class="form-field">
+        <label>Description (optional)</label>
+        <textarea data-section="work" data-index="${idx}" data-field="description" placeholder="Brief description of the role or company...">${esc(data.description)}</textarea>
       </div>
     </div>
     <div class="achievements-list" data-work-index="${idx}">
@@ -76,6 +86,10 @@ export function addAchievement(workIndex, text = '') {
     <button class="btn btn-remove btn-small" data-action="remove-achievement">&times;</button>
   `;
   container.appendChild(item);
+
+  // Focus the new input
+  const input = item.querySelector('input');
+  if (input && !text) input.focus();
 }
 
 export function removeWorkEntry(index) {
@@ -97,7 +111,11 @@ export function addEducationEntry(data = {}) {
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Education #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-education" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-education" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-field">
@@ -154,7 +172,11 @@ export function addProjectEntry(data = {}) {
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Project #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-project" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-project" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-field">
@@ -200,15 +222,27 @@ export function addSkillCategory(data = {}) {
   block.dataset.index = idx;
   block.dataset.section = 'skill';
 
+  const bulletedChecked = data.bulleted ? 'checked' : '';
+
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Skill Category #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-skill" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-skill" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
-    <div class="form-row single">
+    <div class="form-row">
       <div class="form-field">
         <label>Category Name</label>
         <input type="text" data-section="skill" data-index="${idx}" data-field="category" value="${esc(data.category)}" placeholder="e.g., Programming Languages">
+      </div>
+      <div class="form-field checkbox-field">
+        <label class="checkbox-label">
+          <input type="checkbox" data-section="skill" data-index="${idx}" data-field="bulleted" ${bulletedChecked}>
+          <span>Show as bullets</span>
+        </label>
       </div>
     </div>
     <div class="skill-items" data-skill-index="${idx}"></div>
@@ -235,6 +269,10 @@ export function addSkillItem(skillIndex, text = '') {
     <button class="btn btn-remove btn-small" data-action="remove-skill-item">&times;</button>
   `;
   container.appendChild(item);
+
+  // Focus the new input
+  const input = item.querySelector('input');
+  if (input && !text) input.focus();
 }
 
 export function removeSkillCategory(index) {
@@ -256,7 +294,11 @@ export function addCertificationEntry(data = {}) {
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Certification #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-certification" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-certification" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-field">
@@ -303,7 +345,11 @@ export function addInternshipEntry(data = {}) {
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Internship #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-internship" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-internship" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-field">
@@ -356,7 +402,11 @@ export function addLanguageEntry(data = {}) {
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Language #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-language" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-language" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
     <div class="form-row">
       <div class="form-field">
@@ -400,7 +450,11 @@ export function addCustomSection(data = {}) {
   block.innerHTML = `
     <div class="entry-block-header">
       <span>Custom Section #${idx + 1}</span>
-      <button class="btn btn-remove" data-action="remove-custom-section" data-index="${idx}">&times; Remove</button>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-custom-section" data-index="${idx}">&times; Remove</button>
+      </div>
     </div>
     <div class="form-row single">
       <div class="form-field">
@@ -434,6 +488,10 @@ export function addCustomItem(customIndex, text = '') {
     <button class="btn btn-remove btn-small" data-action="remove-custom-item">&times;</button>
   `;
   container.appendChild(item);
+
+  // Focus the new input
+  const input = item.querySelector('input');
+  if (input && !text) input.focus();
 }
 
 export function removeCustomSection(index) {
@@ -475,6 +533,7 @@ export function collectWorkExperience() {
       location: valIn(block, '[data-field="location"]'),
       start_date: valIn(block, '[data-field="start_date"]'),
       end_date: valIn(block, '[data-field="end_date"]'),
+      description: valIn(block, 'textarea[data-field="description"]'),
       achievements,
     });
   });
@@ -517,9 +576,11 @@ export function collectSkills() {
     block.querySelectorAll(`input[data-section="skill-item"][data-skill-index="${idx}"]`).forEach(input => {
       if (input.value.trim()) items.push(input.value.trim());
     });
+    const bulletedCheckbox = block.querySelector(`input[data-field="bulleted"][data-index="${idx}"]`);
     categories.push({
       category: valIn(block, '[data-field="category"]'),
       items,
+      bulleted: bulletedCheckbox ? bulletedCheckbox.checked : false,
     });
   });
   return categories;
