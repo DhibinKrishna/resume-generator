@@ -1,6 +1,6 @@
 // DOCX export using docx.js
 
-export async function downloadDOCX(data, filename = 'resume.docx') {
+export async function downloadDOCX(data, filename = 'resume.docx', fontValue = 'default') {
   if (typeof docx === 'undefined') {
     alert('DOCX library not loaded. Please check your internet connection and refresh.');
     return;
@@ -9,7 +9,10 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
   const {
     Document, Packer, Paragraph, TextRun, HeadingLevel,
     AlignmentType, BorderStyle, TabStopPosition, TabStopType,
+    convertInchesToTwip,
   } = docx;
+
+  const docxFont = fontValue === 'default' ? 'Calibri' : fontValue;
 
   const pi = data.personalInfo || {};
   const summary = data.profileSummary || '';
@@ -28,7 +31,7 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
         bold: true,
         size: 48,
         color: themeColor,
-        font: 'Calibri',
+        font: docxFont,
       }),
     ],
     spacing: { after: 100 },
@@ -42,7 +45,7 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
           text: pi.job_title,
           size: 26,
           color: '666666',
-          font: 'Calibri',
+          font: docxFont,
         }),
       ],
       spacing: { after: 200 },
@@ -58,7 +61,7 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
           text: contactParts.join('  |  '),
           size: 18,
           color: '555555',
-          font: 'Calibri',
+          font: docxFont,
         }),
       ],
       spacing: { after: 300 },
@@ -74,12 +77,12 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
           bold: true,
           size: 24,
           color: themeColor,
-          font: 'Calibri',
+          font: docxFont,
         }),
       ],
-      spacing: { before: 300, after: 100 },
+      spacing: { before: 960, after: 300 },
       border: {
-        bottom: { style: BorderStyle.SINGLE, size: 1, color: themeColor },
+        bottom: { style: BorderStyle.SINGLE, size: 6, color: themeColor },
       },
     }));
   }
@@ -91,15 +94,15 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
         text: title,
         bold: true,
         size: 22,
-        font: 'Calibri',
+        font: docxFont,
       }),
     ];
     if (dateStr) {
       runs.push(new TextRun({
         text: `\t${dateStr}`,
-        size: 18,
+        size: 20,
         color: '666666',
-        font: 'Calibri',
+        font: docxFont,
       }));
     }
     children.push(new Paragraph({
@@ -108,7 +111,7 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
         type: TabStopType.RIGHT,
         position: TabStopPosition.MAX,
       }],
-      spacing: { before: 100, after: 50 },
+      spacing: { before: 480, after: 100 },
     }));
   }
 
@@ -121,10 +124,25 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
           italics: true,
           size: 20,
           color: '555555',
-          font: 'Calibri',
+          font: docxFont,
         }),
       ],
-      spacing: { after: 50 },
+      spacing: { after: 80 },
+    }));
+  }
+
+  // Helper: description paragraph
+  function addDescription(text) {
+    children.push(new Paragraph({
+      children: [
+        new TextRun({
+          text: text,
+          size: 20,
+          color: '444444',
+          font: docxFont,
+        }),
+      ],
+      spacing: { before: 80, after: 120 },
     }));
   }
 
@@ -135,11 +153,11 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
         new TextRun({
           text: text,
           size: 20,
-          font: 'Calibri',
+          font: docxFont,
         }),
       ],
       bullet: { level: 0 },
-      spacing: { after: 30 },
+      spacing: { after: 60 },
     }));
   }
 
@@ -150,10 +168,10 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
         new TextRun({
           text: text,
           size: 20,
-          font: 'Calibri',
+          font: docxFont,
         }),
       ],
-      spacing: { after: 100 },
+      spacing: { after: 200 },
     }));
   }
 
@@ -170,6 +188,49 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
     addParagraph(summary);
   }
 
+  // Skills
+  const filledSkills = (data.skills || []).filter(s => s.category || (s.items && s.items.length > 0));
+  if (filledSkills.length > 0) {
+    addSectionHeading('Skills');
+    filledSkills.forEach(s => {
+      // Check if bulleted format
+      if (s.bulleted && s.items && s.items.length > 0) {
+        // Category as heading
+        children.push(new Paragraph({
+          children: [
+            new TextRun({
+              text: s.category || 'Skills',
+              bold: true,
+              size: 20,
+              font: docxFont,
+            }),
+          ],
+          spacing: { before: 480, after: 120 },
+        }));
+        // Items as bullets
+        s.items.forEach(item => addBullet(item));
+      } else {
+        // Comma separated (default)
+        children.push(new Paragraph({
+          children: [
+            new TextRun({
+              text: (s.category || '') + ': ',
+              bold: true,
+              size: 20,
+              font: docxFont,
+            }),
+            new TextRun({
+              text: (s.items || []).join(', '),
+              size: 20,
+              font: docxFont,
+            }),
+          ],
+          spacing: { after: 100 },
+        }));
+      }
+    });
+  }
+
   // Work Experience
   const filledWork = (data.workExperience || []).filter(w => w.company || w.role);
   if (filledWork.length > 0) {
@@ -178,6 +239,7 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
       const title = w.company + (w.role ? ' — ' + w.role : '');
       addEntryHeader(title, formatDateRange(w.start_date, w.end_date));
       if (w.location) addSubtitle(w.location);
+      if (w.description && w.description.trim()) addDescription(w.description);
       (w.achievements || []).forEach(a => {
         if (a && a.trim()) addBullet(a);
       });
@@ -208,29 +270,7 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
     });
   }
 
-  // Skills
-  const filledSkills = (data.skills || []).filter(s => s.category || (s.items && s.items.length > 0));
-  if (filledSkills.length > 0) {
-    addSectionHeading('Skills');
-    filledSkills.forEach(s => {
-      children.push(new Paragraph({
-        children: [
-          new TextRun({
-            text: (s.category || '') + ': ',
-            bold: true,
-            size: 20,
-            font: 'Calibri',
-          }),
-          new TextRun({
-            text: (s.items || []).join(', '),
-            size: 20,
-            font: 'Calibri',
-          }),
-        ],
-        spacing: { after: 50 },
-      }));
-    });
-  }
+
 
   // Certifications
   const filledCerts = (data.certifications || []).filter(c => c.name);
@@ -275,9 +315,19 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
     });
   });
 
-  // Create document
+  // Create document with proper margins
   const doc = new Document({
     sections: [{
+      properties: {
+        page: {
+          margin: {
+            top: convertInchesToTwip(0.75),
+            right: convertInchesToTwip(0.75),
+            bottom: convertInchesToTwip(0.75),
+            left: convertInchesToTwip(0.75),
+          },
+        },
+      },
       children: children,
     }],
   });
@@ -290,3 +340,4 @@ export async function downloadDOCX(data, filename = 'resume.docx') {
   a.click();
   URL.revokeObjectURL(url);
 }
+

@@ -69,6 +69,7 @@ function createTables() {
       name TEXT NOT NULL DEFAULT 'Untitled Resume',
       style TEXT NOT NULL DEFAULT 'classic',
       theme TEXT NOT NULL DEFAULT '#5B7B7A',
+      font TEXT NOT NULL DEFAULT 'default',
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now'))
     );
@@ -107,10 +108,18 @@ function createTables() {
       location TEXT,
       start_date TEXT,
       end_date TEXT,
+      description TEXT,
       sort_order INTEGER DEFAULT 0,
       FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE
     );
   `);
+
+  // Add description column if it doesn't exist (for existing databases)
+  try {
+    db.run('ALTER TABLE work_experience ADD COLUMN description TEXT');
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS work_achievements (
@@ -155,10 +164,25 @@ function createTables() {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       resume_id INTEGER NOT NULL,
       category TEXT,
+      bulleted INTEGER DEFAULT 0,
       sort_order INTEGER DEFAULT 0,
       FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE
     );
   `);
+
+  // Add bulleted column if it doesn't exist (for existing databases)
+  try {
+    db.run('ALTER TABLE skills ADD COLUMN bulleted INTEGER DEFAULT 0');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  // Add font column if it doesn't exist (for existing databases)
+  try {
+    db.run("ALTER TABLE resumes ADD COLUMN font TEXT NOT NULL DEFAULT 'default'");
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS skill_items (
@@ -266,8 +290,8 @@ function lastInsertId() {
 
 // ─── Resume CRUD ────────────────────────────────────────────────
 
-export async function createResume(name = 'Untitled Resume', style = 'classic', theme = '#5B7B7A') {
-  run('INSERT INTO resumes (name, style, theme) VALUES (?, ?, ?)', [name, style, theme]);
+export async function createResume(name = 'Untitled Resume', style = 'classic', theme = '#5B7B7A', font = 'default') {
+  run('INSERT INTO resumes (name, style, theme, font) VALUES (?, ?, ?, ?)', [name, style, theme, font]);
   const id = lastInsertId();
   run('INSERT INTO personal_info (resume_id) VALUES (?)', [id]);
   run('INSERT INTO profile_summary (resume_id) VALUES (?)', [id]);
@@ -281,8 +305,8 @@ export async function getOrCreateResume() {
   return await createResume();
 }
 
-export async function updateResumeConfig(resumeId, style, theme) {
-  run("UPDATE resumes SET style = ?, theme = ?, updated_at = datetime('now') WHERE id = ?", [style, theme, resumeId]);
+export async function updateResumeConfig(resumeId, style, theme, font = 'default') {
+  run("UPDATE resumes SET style = ?, theme = ?, font = ?, updated_at = datetime('now') WHERE id = ?", [style, theme, font, resumeId]);
   await persist();
 }
 
@@ -339,9 +363,9 @@ export async function saveWorkExperience(resumeId, entries) {
   // Insert new entries
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    run(`INSERT INTO work_experience (resume_id, company, role, location, start_date, end_date, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [resumeId, entry.company, entry.role, entry.location, entry.start_date, entry.end_date, i]);
+    run(`INSERT INTO work_experience (resume_id, company, role, location, start_date, end_date, description, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [resumeId, entry.company, entry.role, entry.location, entry.start_date, entry.end_date, entry.description, i]);
     const weId = lastInsertId();
 
     if (entry.achievements) {
@@ -411,8 +435,8 @@ export async function saveSkills(resumeId, categories) {
 
   for (let i = 0; i < categories.length; i++) {
     const cat = categories[i];
-    run('INSERT INTO skills (resume_id, category, sort_order) VALUES (?, ?, ?)',
-      [resumeId, cat.category, i]);
+    run('INSERT INTO skills (resume_id, category, bulleted, sort_order) VALUES (?, ?, ?, ?)',
+      [resumeId, cat.category, cat.bulleted ? 1 : 0, i]);
     const skillId = lastInsertId();
     if (cat.items) {
       for (let j = 0; j < cat.items.length; j++) {
@@ -429,6 +453,7 @@ export function getSkills(resumeId) {
   const categories = queryAll('SELECT * FROM skills WHERE resume_id = ? ORDER BY sort_order', [resumeId]);
   return categories.map(c => ({
     ...c,
+    bulleted: c.bulleted === 1,
     items: queryAll('SELECT * FROM skill_items WHERE skill_id = ? ORDER BY sort_order', [c.id])
       .map(item => item.name)
   }));
@@ -544,4 +569,54 @@ export function loadResume(resumeId) {
     languages: getLanguages(resumeId),
     customSections: getCustomSections(resumeId),
   };
+}
+
+// ─── Clear All Data ─────────────────────────────────────────────
+
+export async function clearAllData() {
+  // Delete from IndexedDB
+  const idb = await openIndexedDB();
+  await new Promise((resolve, reject) => {
+    const tx = idb.transaction(DB_STORE, 'readwrite');
+    const store = tx.objectStore(DB_STORE);
+    const request = store.delete(DB_KEY);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+  // Reinitialize database
+  await initDB();
+}
+
+// ─── Export/Import Draft ────────────────────────────────────────
+
+export function exportDraft(resumeId) {
+  const data = loadResume(resumeId);
+  if (!data) return null;
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    resume: data,
+  };
+}
+
+export async function importDraft(jsonData, resumeId) {
+  if (!jsonData || !jsonData.resume) throw new Error('Invalid draft format');
+  const r = jsonData.resume;
+  
+  // Update config
+  if (r.config) {
+    await updateResumeConfig(resumeId, r.config.style || 'classic', r.config.theme || '#5B7B7A', r.config.font || 'default');
+  }
+  
+  // Save all sections
+  if (r.personalInfo) await savePersonalInfo(resumeId, r.personalInfo);
+  if (r.profileSummary !== undefined) await saveProfileSummary(resumeId, r.profileSummary);
+  if (r.workExperience) await saveWorkExperience(resumeId, r.workExperience);
+  if (r.education) await saveEducation(resumeId, r.education);
+  if (r.projects) await saveProjects(resumeId, r.projects);
+  if (r.skills) await saveSkills(resumeId, r.skills);
+  if (r.certifications) await saveCertifications(resumeId, r.certifications);
+  if (r.internships) await saveInternships(resumeId, r.internships);
+  if (r.languages) await saveLanguages(resumeId, r.languages);
+  if (r.customSections) await saveCustomSections(resumeId, r.customSections);
 }

@@ -25,15 +25,17 @@
       z-index: 100;
       background: #fff;
       border-bottom: 1px solid #ddd;
-      padding: 0.75rem 2rem;
+      padding: 0.75rem 1.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      flex-wrap: wrap;
+      gap: 0.75rem;
     }
 
     .preview-toolbar a {
-      color: var(--theme-primary);
+      color: #5B7B7A;
       text-decoration: none;
       font-weight: 500;
       font-size: 0.9rem;
@@ -41,6 +43,83 @@
 
     .preview-toolbar a:hover {
       text-decoration: underline;
+    }
+
+    .preview-config {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .config-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .config-group label {
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: #666;
+      white-space: nowrap;
+    }
+
+    .config-group select {
+      padding: 0.3rem 0.5rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .theme-swatches {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .theme-swatch {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .theme-swatch:hover {
+      transform: scale(1.1);
+    }
+
+    .theme-swatch.active {
+      border-color: #333;
+      box-shadow: 0 0 0 2px #fff, 0 0 0 3px #333;
+    }
+
+    .theme-picker-wrapper {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 1px dashed #999;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+    }
+
+    .theme-picker-wrapper input[type="color"] {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      border: none;
+      padding: 0;
     }
 
     .preview-actions {
@@ -119,6 +198,34 @@
       to { transform: rotate(360deg); }
     }
 
+    @media (max-width: 768px) {
+      .preview-toolbar {
+        padding: 0.75rem 1rem;
+      }
+      .preview-config {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        padding-top: 0.5rem;
+        border-top: 1px solid #eee;
+      }
+      .theme-swatch {
+        width: 26px;
+        height: 26px;
+      }
+      .theme-picker-wrapper {
+        width: 26px;
+        height: 26px;
+      }
+      .preview-actions {
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 0.4rem 0.75rem;
+        font-size: 0.8rem;
+      }
+    }
+
     @media print {
       .preview-toolbar {
         display: none;
@@ -142,6 +249,49 @@
 
   <div class="preview-toolbar">
     <a href="index.html">&larr; Back to Edit</a>
+    
+    <div class="preview-config">
+      <div class="config-group">
+        <label for="style-select">Style:</label>
+        <select id="style-select">
+          <option value="classic">Classic Professional</option>
+        </select>
+      </div>
+      <div class="config-group">
+        <label for="font-select">Font:</label>
+        <select id="font-select">
+          <option value="default">Classic (Default)</option>
+          <optgroup label="Sans-serif">
+            <option value="Inter">Inter</option>
+            <option value="Lato">Lato</option>
+            <option value="Roboto">Roboto</option>
+            <option value="Open Sans">Open Sans</option>
+            <option value="Source Sans 3">Source Sans 3</option>
+          </optgroup>
+          <optgroup label="Serif">
+            <option value="Merriweather">Merriweather</option>
+            <option value="Lora">Lora</option>
+            <option value="EB Garamond">EB Garamond</option>
+            <option value="Crimson Text">Crimson Text</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="config-group">
+        <label>Theme:</label>
+        <div class="theme-swatches" id="theme-swatches">
+          <button class="theme-swatch active" data-color="#5B7B7A" style="background:#5B7B7A" title="Teal Slate"></button>
+          <button class="theme-swatch" data-color="#2C3E6B" style="background:#2C3E6B" title="Navy Blue"></button>
+          <button class="theme-swatch" data-color="#7B2D3F" style="background:#7B2D3F" title="Burgundy"></button>
+          <button class="theme-swatch" data-color="#3B6B4F" style="background:#3B6B4F" title="Forest Green"></button>
+          <button class="theme-swatch" data-color="#4A4A4A" style="background:#4A4A4A" title="Charcoal"></button>
+          <button class="theme-swatch" data-color="#3366CC" style="background:#3366CC" title="Royal Blue"></button>
+          <label class="theme-picker-wrapper" title="Custom color">
+            <input type="color" id="theme-color-picker" value="#5B7B7A">
+          </label>
+        </div>
+      </div>
+    </div>
+
     <div class="preview-actions">
       <button class="btn btn-primary" id="btn-download-pdf">Download PDF</button>
       <button class="btn btn-secondary" id="btn-download-docx">Download DOCX</button>
@@ -159,10 +309,63 @@
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.min.js"></script>
 
   <script type="module">
-    import { initDB } from './js/db.js';
+    import { initDB, updateResumeConfig } from './js/db.js';
     import { renderResume, getResumeData } from './js/renderer.js';
     import { downloadPDF } from './js/export-pdf.js';
     import { downloadDOCX } from './js/export-docx.js';
+
+    let resumeId = null;
+    let currentTheme = '#5B7B7A';
+    let currentStyle = 'classic';
+    let currentFont = 'default';
+    let data = null;
+
+    const loadedFonts = new Set();
+
+    function loadGoogleFont(fontName) {
+      if (fontName === 'default' || loadedFonts.has(fontName)) return;
+      loadedFonts.add(fontName);
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(fontName)}:wght@300;400;600;700&display=swap`;
+      document.head.appendChild(link);
+    }
+
+    function applyFont(fontValue) {
+      if (fontValue === 'default') {
+        document.documentElement.style.setProperty('--theme-font', "'Georgia', 'Times New Roman', serif");
+        document.documentElement.style.setProperty('--theme-heading-font', "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif");
+      } else {
+        loadGoogleFont(fontValue);
+        const fontStack = `'${fontValue}', sans-serif`;
+        document.documentElement.style.setProperty('--theme-font', fontStack);
+        document.documentElement.style.setProperty('--theme-heading-font', fontStack);
+      }
+    }
+
+    function applyThemeColor(color) {
+      document.documentElement.style.setProperty('--theme-primary', color);
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      document.documentElement.style.setProperty('--theme-primary-light',
+        `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`);
+      document.documentElement.style.setProperty('--theme-primary-dark',
+        `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`);
+    }
+
+    function setActiveTheme(color) {
+      document.querySelectorAll('.theme-swatch').forEach(swatch => {
+        swatch.classList.toggle('active', swatch.dataset.color === color);
+      });
+      const picker = document.getElementById('theme-color-picker');
+      if (picker) picker.value = color;
+    }
+
+    function reRenderPreview() {
+      const html = renderResume(resumeId);
+      document.getElementById('resume-preview').innerHTML = html;
+    }
 
     async function init() {
       try {
@@ -170,7 +373,7 @@
 
         // Get resume ID from URL params
         const params = new URLSearchParams(window.location.search);
-        const resumeId = parseInt(params.get('id'), 10);
+        resumeId = parseInt(params.get('id'), 10);
 
         if (!resumeId) {
           document.getElementById('resume-preview').innerHTML = '<p style="padding:2rem;">No resume selected. <a href="index.html">Go back</a>.</p>';
@@ -178,23 +381,59 @@
           return;
         }
 
-        // Apply theme color
-        const data = getResumeData(resumeId);
-        if (data && data.config && data.config.theme) {
-          document.documentElement.style.setProperty('--theme-primary', data.config.theme);
-          const color = data.config.theme;
-          const r = parseInt(color.slice(1, 3), 16);
-          const g = parseInt(color.slice(3, 5), 16);
-          const b = parseInt(color.slice(5, 7), 16);
-          document.documentElement.style.setProperty('--theme-primary-light',
-            `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`);
-          document.documentElement.style.setProperty('--theme-primary-dark',
-            `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`);
+        // Load data and apply theme
+        data = getResumeData(resumeId);
+        if (data && data.config) {
+          currentTheme = data.config.theme || '#5B7B7A';
+          currentStyle = data.config.style || 'classic';
+          currentFont = data.config.font || 'default';
         }
+        applyThemeColor(currentTheme);
+        setActiveTheme(currentTheme);
+        document.getElementById('style-select').value = currentStyle;
+        document.getElementById('font-select').value = currentFont;
+        applyFont(currentFont);
 
         // Render resume
-        const html = renderResume(resumeId);
-        document.getElementById('resume-preview').innerHTML = html;
+        reRenderPreview();
+
+        // Theme swatches
+        document.getElementById('theme-swatches').addEventListener('click', async (e) => {
+          const swatch = e.target.closest('.theme-swatch');
+          if (!swatch) return;
+          currentTheme = swatch.dataset.color;
+          setActiveTheme(currentTheme);
+          applyThemeColor(currentTheme);
+          await updateResumeConfig(resumeId, currentStyle, currentTheme, currentFont);
+          reRenderPreview();
+        });
+
+        // Color picker
+        document.getElementById('theme-color-picker').addEventListener('input', (e) => {
+          currentTheme = e.target.value;
+          setActiveTheme(currentTheme);
+          applyThemeColor(currentTheme);
+          reRenderPreview();
+        });
+        document.getElementById('theme-color-picker').addEventListener('change', async (e) => {
+          currentTheme = e.target.value;
+          await updateResumeConfig(resumeId, currentStyle, currentTheme, currentFont);
+        });
+
+        // Style selector
+        document.getElementById('style-select').addEventListener('change', async (e) => {
+          currentStyle = e.target.value;
+          await updateResumeConfig(resumeId, currentStyle, currentTheme, currentFont);
+          reRenderPreview();
+        });
+
+        // Font selector
+        document.getElementById('font-select').addEventListener('change', async (e) => {
+          currentFont = e.target.value;
+          applyFont(currentFont);
+          await updateResumeConfig(resumeId, currentStyle, currentTheme, currentFont);
+          reRenderPreview();
+        });
 
         // PDF download
         document.getElementById('btn-download-pdf').addEventListener('click', async () => {
@@ -206,7 +445,7 @@
         // DOCX download
         document.getElementById('btn-download-docx').addEventListener('click', async () => {
           const name = data?.personalInfo?.full_name || 'resume';
-          await downloadDOCX(data, `${name.replace(/\s+/g, '_')}_resume.docx`);
+          await downloadDOCX(data, `${name.replace(/\s+/g, '_')}_resume.docx`, currentFont);
         });
 
         document.getElementById('loading').classList.add('hidden');
