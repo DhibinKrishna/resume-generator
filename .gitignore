@@ -1,0 +1,24 @@
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local settings
+settings.local.json
+
+# Node (in case added later)
+node_modules/
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# Claude Code
+.claude/
