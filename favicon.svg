@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Document background -->
+  <rect x="4" y="2" width="24" height="28" rx="2" fill="#fff" stroke="#5B7B7A" stroke-width="2"/>
+  <!-- Folded corner -->
+  <path d="M20 2 L28 10 L20 10 Z" fill="#e8f0ef" stroke="#5B7B7A" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Text lines -->
+  <rect x="8" y="14" width="12" height="2" rx="1" fill="#5B7B7A"/>
+  <rect x="8" y="19" width="16" height="2" rx="1" fill="#5B7B7A" opacity="0.6"/>
+  <rect x="8" y="24" width="14" height="2" rx="1" fill="#5B7B7A" opacity="0.6"/>
+</svg>
