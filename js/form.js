@@ -4,6 +4,7 @@ let entryCounters = {
   work: 0,
   education: 0,
   skill: 0,
+  license: 0,
   certification: 0,
   internship: 0,
   language: 0,
@@ -281,6 +282,61 @@ export function addSkillItem(skillIndex, text = '') {
 
 export function removeSkillCategory(index) {
   const container = document.getElementById('skill-entries');
+  const block = container.querySelector(`.entry-block[data-index="${index}"]`);
+  if (block) block.remove();
+}
+
+// ─── Licenses ───────────────────────────────────────────────────
+
+export function addLicenseEntry(data = {}) {
+  const idx = entryCounters.license++;
+  const container = document.getElementById('license-entries');
+  const block = document.createElement('div');
+  block.className = 'entry-block';
+  block.dataset.index = idx;
+  block.dataset.section = 'license';
+
+  block.innerHTML = `
+    <div class="entry-block-header">
+      <span>License #${idx + 1}</span>
+      <div class="entry-header-actions">
+        <button class="btn btn-reorder btn-icon" data-action="move-up" title="Move up">↑</button>
+        <button class="btn btn-reorder btn-icon" data-action="move-down" title="Move down">↓</button>
+        <button class="btn btn-remove" data-action="remove-license" data-index="${idx}">&times; Remove</button>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>License Name</label>
+        <input type="text" data-section="license" data-index="${idx}" data-field="name" value="${esc(data.name)}" placeholder="Registered Nurse (RN)">
+      </div>
+      <div class="form-field">
+        <label>Issuing Organization</label>
+        <input type="text" data-section="license" data-index="${idx}" data-field="issuing_org" value="${esc(data.issuing_org)}" placeholder="State Board of Nursing">
+      </div>
+    </div>
+    <div class="form-row triple">
+      <div class="form-field">
+        <label>Issue Date</label>
+        <input type="text" data-section="license" data-index="${idx}" data-field="issue_date" value="${esc(data.issue_date)}" placeholder="Jan 2020">
+      </div>
+      <div class="form-field">
+        <label>Expiration Date</label>
+        <input type="text" data-section="license" data-index="${idx}" data-field="expiration_date" value="${esc(data.expiration_date)}" placeholder="Jan 2025">
+      </div>
+      <div class="form-field">
+        <label>License Number (optional)</label>
+        <input type="text" data-section="license" data-index="${idx}" data-field="license_number" value="${esc(data.license_number)}" placeholder="LIC-123456">
+      </div>
+    </div>
+  `;
+
+  container.appendChild(block);
+  return block;
+}
+
+export function removeLicenseEntry(index) {
+  const container = document.getElementById('license-entries');
   const block = container.querySelector(`.entry-block[data-index="${index}"]`);
   if (block) block.remove();
 }
@@ -587,6 +643,20 @@ export function collectSkills() {
     });
   });
   return categories;
+}
+
+export function collectLicenses() {
+  const entries = [];
+  document.querySelectorAll('#license-entries .entry-block').forEach(block => {
+    entries.push({
+      name: valIn(block, '[data-field="name"]'),
+      issuing_org: valIn(block, '[data-field="issuing_org"]'),
+      issue_date: valIn(block, '[data-field="issue_date"]'),
+      expiration_date: valIn(block, '[data-field="expiration_date"]'),
+      license_number: valIn(block, '[data-field="license_number"]'),
+    });
+  });
+  return entries;
 }
 
 export function collectCertifications() {

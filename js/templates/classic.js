@@ -7,6 +7,7 @@ export function renderClassic(data, theme) {
   const edu = data.education || [];
   const skills = data.skills || [];
   const certs = data.certifications || [];
+  const licenses = data.licenses || [];
   const internships = data.internships || [];
   const languages = data.languages || [];
   const customSections = data.customSections || [];
@@ -62,6 +63,23 @@ export function renderClassic(data, theme) {
         // Comma-separated (default)
         html += `<span class="resume-skills-items">${esc((s.items || []).join(', '))}</span>`;
       }
+      html += `</div>`;
+    });
+  }
+
+  // Licenses
+  const filledLicenses = licenses.filter(l => l.name);
+  if (filledLicenses.length > 0) {
+    html += sectionTitle('Licenses');
+    filledLicenses.forEach(l => {
+      html += `<div class="resume-cert-item">`;
+      html += `<strong>${esc(l.name)}</strong>`;
+      if (l.issuing_org) html += ` <span class="resume-cert-org">— ${esc(l.issuing_org)}</span>`;
+      const dates = [];
+      if (l.issue_date) dates.push(`Issued: ${esc(l.issue_date)}`);
+      if (l.expiration_date) dates.push(`Expires: ${esc(l.expiration_date)}`);
+      if (dates.length > 0) html += ` <span class="resume-cert-org">(${dates.join(' | ')})</span>`;
+      if (l.license_number) html += ` <span class="resume-cert-org">License #: ${esc(l.license_number)}</span>`;
       html += `</div>`;
     });
   }
