@@ -244,6 +244,7 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
       if (dates.length > 0) text += ` (${dates.join(' | ')})`;
       if (l.license_number) text += ` License #: ${l.license_number}`;
       addParagraph(text);
+      if (l.description) addParagraph(l.description);
     });
   }
 

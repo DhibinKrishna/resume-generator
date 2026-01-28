@@ -220,10 +220,18 @@ function createTables() {
       issue_date TEXT,
       expiration_date TEXT,
       license_number TEXT,
+      description TEXT,
       sort_order INTEGER DEFAULT 0,
       FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE
     );
   `);
+
+  // Add description column to licenses if it doesn't exist (for existing databases)
+  try {
+    db.run('ALTER TABLE licenses ADD COLUMN description TEXT');
+  } catch (e) {
+    // Column already exists, ignore
+  }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS certifications (
@@ -489,9 +497,9 @@ export async function saveLicenses(resumeId, entries) {
   run('DELETE FROM licenses WHERE resume_id = ?', [resumeId]);
   for (let i = 0; i < entries.length; i++) {
     const entry = entries[i];
-    run(`INSERT INTO licenses (resume_id, name, issuing_org, issue_date, expiration_date, license_number, sort_order)
-      VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [resumeId, entry.name, entry.issuing_org, entry.issue_date, entry.expiration_date, entry.license_number, i]);
+    run(`INSERT INTO licenses (resume_id, name, issuing_org, issue_date, expiration_date, license_number, description, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [resumeId, entry.name, entry.issuing_org, entry.issue_date, entry.expiration_date, entry.license_number, entry.description, i]);
   }
   run("UPDATE resumes SET updated_at = datetime('now') WHERE id = ?", [resumeId]);
   await persist();

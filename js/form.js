@@ -329,6 +329,12 @@ export function addLicenseEntry(data = {}) {
         <input type="text" data-section="license" data-index="${idx}" data-field="license_number" value="${esc(data.license_number)}" placeholder="LIC-123456">
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-field full-width">
+        <label>Description (optional)</label>
+        <textarea data-section="license" data-index="${idx}" data-field="description" rows="2" placeholder="Brief description of the license scope or relevance">${esc(data.description)}</textarea>
+      </div>
+    </div>
   `;
 
   container.appendChild(block);
@@ -654,6 +660,7 @@ export function collectLicenses() {
       issue_date: valIn(block, '[data-field="issue_date"]'),
       expiration_date: valIn(block, '[data-field="expiration_date"]'),
       license_number: valIn(block, '[data-field="license_number"]'),
+      description: valIn(block, '[data-field="description"]'),
     });
   });
   return entries;

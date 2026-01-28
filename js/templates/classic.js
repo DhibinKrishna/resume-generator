@@ -80,6 +80,7 @@ export function renderClassic(data, theme) {
       if (l.expiration_date) dates.push(`Expires: ${esc(l.expiration_date)}`);
       if (dates.length > 0) html += ` <span class="resume-cert-org">(${dates.join(' | ')})</span>`;
       if (l.license_number) html += ` <span class="resume-cert-org">License #: ${esc(l.license_number)}</span>`;
+      if (l.description) html += `<div class="resume-cert-desc" style="margin-left:0;font-size:0.95em;color:#444;">${esc(l.description)}</div>`;
       html += `</div>`;
     });
   }
