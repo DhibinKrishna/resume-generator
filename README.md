@@ -13,6 +13,7 @@ A privacy-first, browser-based resume builder with local data persistence. Creat
 - **🔄 Reorderable Entries** — Up/down arrows to organize entries (auto-hidden for single items)
 - **📱 Responsive Design** — Works on desktop, tablet, and mobile
 - **🔒 Privacy First** — All data stays on your device
+- **🤝 Shareable Drafts** — Export your draft as JSON and share it with others, who can import it to populate their own editor
 
 ## 🚀 Quick Start
 

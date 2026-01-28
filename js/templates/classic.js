@@ -1,5 +1,7 @@
 // Classic Professional template render function
 
+import { DEFAULT_SECTION_ORDER } from '../db.js';
+
 export function renderClassic(data, theme) {
   const pi = data.personalInfo || {};
   const summary = data.profileSummary || '';
@@ -39,175 +41,208 @@ export function renderClassic(data, theme) {
   // Body with left accent stripe
   html += `<div class="resume-body">`;
 
-  // Profile Summary
-  if (summary && summary.trim()) {
-    html += sectionTitle('Profile Summary');
-    html += `<p class="resume-summary">${esc(summary)}</p>`;
-  }
+  // Section renderers
+  const sectionRenderers = {
+    summary() {
+      let s = '';
+      if (summary && summary.trim()) {
+        s += sectionTitle('Profile Summary');
+        s += `<p class="resume-summary">${fmt(summary)}</p>`;
+      }
+      return s;
+    },
 
-  // Skills
-  const filledSkills = skills.filter(s => s.category || (s.items && s.items.length > 0));
-  if (filledSkills.length > 0) {
-    html += sectionTitle('Skills');
-    filledSkills.forEach(s => {
-      html += `<div class="resume-skills-category">`;
-      html += `<span class="resume-skills-label">${esc(s.category)}: </span>`;
-      if (s.bulleted && s.items && s.items.length > 0) {
-        // Bulleted view
-        html += `<ul class="resume-skills-bullets">`;
-        s.items.forEach(item => {
-          html += `<li>${esc(item)}</li>`;
-        });
-        html += `</ul>`;
-      } else {
-        // Comma-separated (default)
-        html += `<span class="resume-skills-items">${esc((s.items || []).join(', '))}</span>`;
-      }
-      html += `</div>`;
-    });
-  }
-
-  // Licenses
-  const filledLicenses = licenses.filter(l => l.name);
-  if (filledLicenses.length > 0) {
-    html += sectionTitle('Licenses');
-    filledLicenses.forEach(l => {
-      html += `<div class="resume-cert-item">`;
-      html += `<strong>${esc(l.name)}</strong>`;
-      if (l.issuing_org) html += ` <span class="resume-cert-org">— ${esc(l.issuing_org)}</span>`;
-      const dates = [];
-      if (l.issue_date) dates.push(`Issued: ${esc(l.issue_date)}`);
-      if (l.expiration_date) dates.push(`Expires: ${esc(l.expiration_date)}`);
-      if (dates.length > 0) html += ` <span class="resume-cert-org">(${dates.join(' | ')})</span>`;
-      if (l.license_number) html += ` <span class="resume-cert-org">License #: ${esc(l.license_number)}</span>`;
-      if (l.description) html += `<div class="resume-cert-desc" style="margin-left:0;font-size:0.95em;color:#444;">${esc(l.description)}</div>`;
-      html += `</div>`;
-    });
-  }
-
-  // Work Experience
-  const filledWork = work.filter(w => w.company || w.role);
-  if (filledWork.length > 0) {
-    html += sectionTitle('Work Experience');
-    filledWork.forEach(w => {
-      html += `<div class="resume-entry">`;
-      html += `<div class="resume-entry-header">`;
-      html += `<span class="resume-entry-title">${esc(w.company)}${w.role ? ' — ' + esc(w.role) : ''}</span>`;
-      const dateStr = formatDateRange(w.start_date, w.end_date);
-      if (dateStr) html += `<span class="resume-entry-date">${dateStr}</span>`;
-      html += `</div>`;
-      if (w.location) {
-        html += `<div class="resume-entry-subtitle">${esc(w.location)}</div>`;
-      }
-      if (w.description && w.description.trim()) {
-        html += `<p class="resume-work-desc">${esc(w.description)}</p>`;
-      }
-      if (w.achievements && w.achievements.length > 0) {
-        html += `<ul class="resume-bullets">`;
-        w.achievements.forEach(a => {
-          if (a && a.trim()) html += `<li>${esc(a)}</li>`;
-        });
-        html += `</ul>`;
-      }
-      const filledProjects = (w.projects || []).filter(p => p.title || p.description);
-      if (filledProjects.length > 0) {
-        filledProjects.forEach(p => {
-          html += `<div class="resume-work-project">`;
-          html += `<div class="resume-entry-header">`;
-          html += `<span class="resume-work-project-title">${esc(p.title)}</span>`;
-          const projDate = formatDateRange(p.start_date, p.end_date);
-          if (projDate) html += `<span class="resume-entry-date">${projDate}</span>`;
-          html += `</div>`;
-          if (p.description) {
-            html += `<p class="resume-summary">${esc(p.description)}</p>`;
+    skills() {
+      let s = '';
+      const filledSkills = skills.filter(sk => sk.category || (sk.items && sk.items.length > 0));
+      if (filledSkills.length > 0) {
+        s += sectionTitle('Skills');
+        filledSkills.forEach(sk => {
+          s += `<div class="resume-skills-category">`;
+          s += `<span class="resume-skills-label">${esc(sk.category)}: </span>`;
+          if (sk.bulleted && sk.items && sk.items.length > 0) {
+            s += `<ul class="resume-skills-bullets">`;
+            sk.items.forEach(item => {
+              s += `<li>${fmt(item)}</li>`;
+            });
+            s += `</ul>`;
+          } else {
+            s += `<span class="resume-skills-items">${(sk.items || []).map(i => fmt(i)).join(', ')}</span>`;
           }
-          if (p.technologies) {
-            html += `<div class="resume-project-tech">Technologies: ${esc(p.technologies)}</div>`;
-          }
-          if (p.link) {
-            html += `<div class="resume-project-link"><a href="${esc(p.link)}" target="_blank">${esc(p.link)}</a></div>`;
-          }
-          html += `</div>`;
+          s += `</div>`;
         });
       }
-      html += `</div>`;
-    });
-  }
+      return s;
+    },
 
-  // Education
-  const filledEdu = edu.filter(e => e.institution || e.degree);
-  if (filledEdu.length > 0) {
-    html += sectionTitle('Education');
-    filledEdu.forEach(e => {
-      html += `<div class="resume-entry">`;
-      html += `<div class="resume-entry-header">`;
-      html += `<span class="resume-entry-title">${esc(e.institution)}</span>`;
-      const dateStr = formatDateRange(e.start_date, e.end_date);
-      if (dateStr) html += `<span class="resume-entry-date">${dateStr}</span>`;
-      html += `</div>`;
-      const degreeField = [e.degree, e.field].filter(Boolean).join(' in ');
-      if (degreeField) {
-        html += `<div class="resume-entry-subtitle">${esc(degreeField)}</div>`;
+    licenses() {
+      let s = '';
+      const filledLicenses = licenses.filter(l => l.name);
+      if (filledLicenses.length > 0) {
+        s += sectionTitle('Licenses');
+        filledLicenses.forEach(l => {
+          s += `<div class="resume-cert-item">`;
+          s += `<strong>${esc(l.name)}</strong>`;
+          if (l.issuing_org) s += ` <span class="resume-cert-org">— ${esc(l.issuing_org)}</span>`;
+          const dates = [];
+          if (l.issue_date) dates.push(`Issued: ${esc(l.issue_date)}`);
+          if (l.expiration_date) dates.push(`Expires: ${esc(l.expiration_date)}`);
+          if (dates.length > 0) s += ` <span class="resume-cert-org">(${dates.join(' | ')})</span>`;
+          if (l.license_number) s += ` <span class="resume-cert-org">License #: ${esc(l.license_number)}</span>`;
+          if (l.description) s += `<div class="resume-cert-desc" style="margin-left:0;font-size:0.95em;color:#444;">${fmt(l.description)}</div>`;
+          s += `</div>`;
+        });
       }
-      if (e.gpa) {
-        html += `<div class="resume-edu-details">GPA: ${esc(e.gpa)}</div>`;
+      return s;
+    },
+
+    work() {
+      let s = '';
+      const filledWork = work.filter(w => w.company || w.role);
+      if (filledWork.length > 0) {
+        s += sectionTitle('Work Experience');
+        filledWork.forEach(w => {
+          s += `<div class="resume-entry">`;
+          s += `<div class="resume-entry-header">`;
+          s += `<span class="resume-entry-title">${esc(w.company)}${w.role ? ' — ' + esc(w.role) : ''}</span>`;
+          const dateStr = formatDateRange(w.start_date, w.end_date);
+          if (dateStr) s += `<span class="resume-entry-date">${dateStr}</span>`;
+          s += `</div>`;
+          if (w.location) {
+            s += `<div class="resume-entry-subtitle">${esc(w.location)}</div>`;
+          }
+          if (w.description && w.description.trim()) {
+            s += `<p class="resume-work-desc">${fmt(w.description)}</p>`;
+          }
+          if (w.achievements && w.achievements.length > 0) {
+            s += `<ul class="resume-bullets">`;
+            w.achievements.forEach(a => {
+              if (a && a.trim()) s += `<li>${fmt(a)}</li>`;
+            });
+            s += `</ul>`;
+          }
+          const filledProjects = (w.projects || []).filter(p => p.title || p.description);
+          if (filledProjects.length > 0) {
+            filledProjects.forEach(p => {
+              s += `<div class="resume-work-project">`;
+              s += `<div class="resume-entry-header">`;
+              s += `<span class="resume-work-project-title">${esc(p.title)}</span>`;
+              const projDate = formatDateRange(p.start_date, p.end_date);
+              if (projDate) s += `<span class="resume-entry-date">${projDate}</span>`;
+              s += `</div>`;
+              if (p.description) {
+                s += `<p class="resume-summary">${fmt(p.description)}</p>`;
+              }
+              if (p.technologies) {
+                s += `<div class="resume-project-tech">Technologies: ${esc(p.technologies)}</div>`;
+              }
+              if (p.link) {
+                s += `<div class="resume-project-link"><a href="${esc(p.link)}" target="_blank">${esc(p.link)}</a></div>`;
+              }
+              s += `</div>`;
+            });
+          }
+          s += `</div>`;
+        });
       }
-      html += `</div>`;
-    });
-  }
+      return s;
+    },
 
-  // Certifications
-  const filledCerts = certs.filter(c => c.name);
-  if (filledCerts.length > 0) {
-    html += sectionTitle('Certifications');
-    filledCerts.forEach(c => {
-      html += `<div class="resume-cert-item">`;
-      html += `<strong>${esc(c.name)}</strong>`;
-      if (c.issuing_org) html += ` <span class="resume-cert-org">— ${esc(c.issuing_org)}</span>`;
-      if (c.date) html += ` <span class="resume-cert-org">(${esc(c.date)})</span>`;
-      if (c.credential_id) html += ` <span class="resume-cert-org">ID: ${esc(c.credential_id)}</span>`;
-      html += `</div>`;
-    });
-  }
-
-  // Internships
-  const filledInternships = internships.filter(i => i.company || i.role);
-  if (filledInternships.length > 0) {
-    html += sectionTitle('Internships');
-    filledInternships.forEach(i => {
-      html += `<div class="resume-entry">`;
-      html += `<div class="resume-entry-header">`;
-      html += `<span class="resume-entry-title">${esc(i.company)}${i.role ? ' — ' + esc(i.role) : ''}</span>`;
-      const dateStr = formatDateRange(i.start_date, i.end_date);
-      if (dateStr) html += `<span class="resume-entry-date">${dateStr}</span>`;
-      html += `</div>`;
-      if (i.description) {
-        html += `<p class="resume-internship-desc">${esc(i.description)}</p>`;
+    education() {
+      let s = '';
+      const filledEdu = edu.filter(e => e.institution || e.degree);
+      if (filledEdu.length > 0) {
+        s += sectionTitle('Education');
+        filledEdu.forEach(e => {
+          s += `<div class="resume-entry">`;
+          s += `<div class="resume-entry-header">`;
+          const degreeField = [e.degree, e.field].filter(Boolean).join(' in ');
+          s += `<span class="resume-entry-title">${esc(degreeField || 'Degree')}</span>`;
+          const dateStr = formatDateRange(e.start_date, e.end_date);
+          if (dateStr) s += `<span class="resume-entry-date">${dateStr}</span>`;
+          s += `</div>`;
+          if (e.institution) {
+            s += `<div class="resume-entry-subtitle">${esc(e.institution)}</div>`;
+          }
+          if (e.gpa) {
+            s += `<div class="resume-edu-details">GPA: ${esc(e.gpa)}</div>`;
+          }
+          s += `</div>`;
+        });
       }
-      html += `</div>`;
-    });
-  }
+      return s;
+    },
 
-  // Languages
-  const filledLangs = languages.filter(l => l.language);
-  if (filledLangs.length > 0) {
-    html += sectionTitle('Languages');
-    filledLangs.forEach(l => {
-      html += `<div class="resume-lang-item">`;
-      html += `<span class="resume-lang-name">${esc(l.language)}</span>`;
-      if (l.proficiency) html += ` <span class="resume-lang-proficiency">— ${esc(l.proficiency)}</span>`;
-      html += `</div>`;
-    });
-  }
+    certifications() {
+      let s = '';
+      const filledCerts = certs.filter(c => c.name);
+      if (filledCerts.length > 0) {
+        s += sectionTitle('Certifications');
+        filledCerts.forEach(c => {
+          s += `<div class="resume-cert-item">`;
+          s += `<strong>${esc(c.name)}</strong>`;
+          if (c.issuing_org) s += ` <span class="resume-cert-org">— ${esc(c.issuing_org)}</span>`;
+          if (c.date) s += ` <span class="resume-cert-org">(${esc(c.date)})</span>`;
+          if (c.credential_id) s += ` <span class="resume-cert-org">ID: ${esc(c.credential_id)}</span>`;
+          s += `</div>`;
+        });
+      }
+      return s;
+    },
 
-  // Custom Sections
+    internships() {
+      let s = '';
+      const filledInternships = internships.filter(i => i.company || i.role);
+      if (filledInternships.length > 0) {
+        s += sectionTitle('Internships');
+        filledInternships.forEach(i => {
+          s += `<div class="resume-entry">`;
+          s += `<div class="resume-entry-header">`;
+          s += `<span class="resume-entry-title">${esc(i.company)}${i.role ? ' — ' + esc(i.role) : ''}</span>`;
+          const dateStr = formatDateRange(i.start_date, i.end_date);
+          if (dateStr) s += `<span class="resume-entry-date">${dateStr}</span>`;
+          s += `</div>`;
+          if (i.description) {
+            s += `<p class="resume-internship-desc">${fmt(i.description)}</p>`;
+          }
+          s += `</div>`;
+        });
+      }
+      return s;
+    },
+
+    languages() {
+      let s = '';
+      const filledLangs = languages.filter(l => l.language);
+      if (filledLangs.length > 0) {
+        s += sectionTitle('Languages');
+        filledLangs.forEach(l => {
+          s += `<div class="resume-lang-item">`;
+          s += `<span class="resume-lang-name">${esc(l.language)}</span>`;
+          if (l.proficiency) s += ` <span class="resume-lang-proficiency">— ${esc(l.proficiency)}</span>`;
+          s += `</div>`;
+        });
+      }
+      return s;
+    },
+  };
+
+  // Render sections in configured order
+  const sectionOrder = data.config?.section_order || DEFAULT_SECTION_ORDER;
+  sectionOrder.forEach(key => {
+    if (sectionRenderers[key]) {
+      html += sectionRenderers[key]();
+    }
+  });
+
+  // Custom Sections (always last)
   const filledCustom = customSections.filter(s => s.title);
   filledCustom.forEach(s => {
     html += sectionTitle(s.title);
     if (s.items && s.items.length > 0) {
       html += `<ul class="resume-bullets">`;
       s.items.forEach(item => {
-        if (item && item.trim()) html += `<li>${esc(item)}</li>`;
+        if (item && item.trim()) html += `<li>${fmt(item)}</li>`;
       });
       html += `</ul>`;
     }
@@ -238,4 +273,9 @@ function esc(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function fmt(str) {
+  if (!str) return '';
+  return esc(str).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 }

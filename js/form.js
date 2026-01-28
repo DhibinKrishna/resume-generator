@@ -177,12 +177,12 @@ export function addEducationEntry(data = {}) {
     </div>
     <div class="form-row">
       <div class="form-field">
-        <label>Institution</label>
-        <input type="text" data-section="education" data-index="${idx}" data-field="institution" value="${esc(data.institution)}" placeholder="University Name">
-      </div>
-      <div class="form-field">
         <label>Degree</label>
         <input type="text" data-section="education" data-index="${idx}" data-field="degree" value="${esc(data.degree)}" placeholder="Bachelor of Science">
+      </div>
+      <div class="form-field">
+        <label>Institution</label>
+        <input type="text" data-section="education" data-index="${idx}" data-field="institution" value="${esc(data.institution)}" placeholder="University Name">
       </div>
     </div>
     <div class="form-row triple">

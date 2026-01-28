@@ -6,6 +6,11 @@ const DB_KEY = 'database';
 
 let db = null;
 
+export const DEFAULT_SECTION_ORDER = [
+  'summary', 'skills', 'licenses', 'work',
+  'education', 'certifications', 'internships', 'languages',
+];
+
 // ─── IndexedDB persistence ───────────────────────────────────────
 
 function openIndexedDB() {
@@ -229,6 +234,13 @@ function createTables() {
   // Add description column to licenses if it doesn't exist (for existing databases)
   try {
     db.run('ALTER TABLE licenses ADD COLUMN description TEXT');
+  } catch (e) {
+    // Column already exists, ignore
+  }
+
+  // Add section_order column if it doesn't exist (for existing databases)
+  try {
+    db.run("ALTER TABLE resumes ADD COLUMN section_order TEXT DEFAULT ''");
   } catch (e) {
     // Column already exists, ignore
   }
@@ -596,10 +608,32 @@ export function getCustomSections(resumeId) {
   }));
 }
 
+// ─── Section Order ──────────────────────────────────────────────
+
+export function getSectionOrder(resumeId) {
+  const row = queryOne('SELECT section_order FROM resumes WHERE id = ?', [resumeId]);
+  if (row && row.section_order) {
+    try {
+      const parsed = JSON.parse(row.section_order);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch (e) { /* fall through */ }
+  }
+  return [...DEFAULT_SECTION_ORDER];
+}
+
+export async function saveSectionOrder(resumeId, orderArray) {
+  run('UPDATE resumes SET section_order = ? WHERE id = ?', [JSON.stringify(orderArray), resumeId]);
+  await persist();
+}
+
 // ─── Load full resume data ──────────────────────────────────────
 
 export function getResumeConfig(resumeId) {
-  return queryOne('SELECT * FROM resumes WHERE id = ?', [resumeId]);
+  const config = queryOne('SELECT * FROM resumes WHERE id = ?', [resumeId]);
+  if (config) {
+    config.section_order = getSectionOrder(resumeId);
+  }
+  return config;
 }
 
 export function loadResume(resumeId) {
@@ -656,6 +690,9 @@ export async function importDraft(jsonData, resumeId) {
   // Update config
   if (r.config) {
     await updateResumeConfig(resumeId, r.config.style || 'classic', r.config.theme || '#5B7B7A', r.config.font || 'default');
+    if (r.config.section_order && Array.isArray(r.config.section_order)) {
+      await saveSectionOrder(resumeId, r.config.section_order);
+    }
   }
   
   // Save all sections

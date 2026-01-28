@@ -32,4 +32,6 @@ Browser-based resume builder using vanilla JS, sql.js (SQLite in WASM), and Inde
 - DB migrations use `ALTER TABLE ... ADD COLUMN` wrapped in try/catch (column-already-exists is silently ignored)
 - Form entries use `data-action` attributes for delegated event handling in `app.js`
 - Reorder support uses `move-up` / `move-down` actions on `.entry-block`, and `move-work-project-up` / `move-work-project-down` on `.work-project-item`
+- **Section ordering**: Main resume sections can be reordered via `move-section-up` / `move-section-down` actions on `section[data-section-key]` elements. Order is stored as a JSON array in `resumes.section_order`. The 8 reorderable keys are defined in `DEFAULT_SECTION_ORDER` in `db.js`: `summary`, `skills`, `licenses`, `work`, `education`, `certifications`, `internships`, `languages`. Personal Info is always first (banner), Custom Sections are always last. Templates (`classic.js`, `export-docx.js`) use a `sectionRenderers` registry keyed by these names and loop over `data.config.section_order`.
 - HTML escaping helper `esc()` is defined locally in each module that needs it
+- Content fields support `**bold**` markdown syntax. Use `fmt()` (HTML) / `parseBoldRuns()` (DOCX) for content; `esc()` for labels/names/titles

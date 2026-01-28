@@ -6,6 +6,7 @@ import {
   saveEducation, saveSkills, saveLicenses, saveCertifications,
   saveInternships, saveLanguages, saveCustomSections,
   loadResume, clearAllData, exportDraft, importDraft,
+  getSectionOrder, saveSectionOrder, DEFAULT_SECTION_ORDER,
 } from './db.js';
 
 import {
@@ -39,6 +40,7 @@ async function init() {
     const data = loadResume(resumeId);
     if (data) {
       populateForm(data);
+      applySectionOrder(data.config?.section_order || DEFAULT_SECTION_ORDER);
     }
 
     bindEvents();
@@ -207,6 +209,66 @@ function moveWorkProjectDown(btn) {
   }
 }
 
+// ─── Section reordering ─────────────────────────────────────────
+
+function getReorderableSections() {
+  const container = document.querySelector('.container');
+  return [...container.querySelectorAll('section[data-section-key]')];
+}
+
+function moveSectionUp(btn) {
+  const section = btn.closest('section[data-section-key]');
+  if (!section) return;
+  const sections = getReorderableSections();
+  const idx = sections.indexOf(section);
+  if (idx <= 0) return;
+  section.parentNode.insertBefore(section, sections[idx - 1]);
+  updateSectionReorderButtons();
+  persistSectionOrder();
+}
+
+function moveSectionDown(btn) {
+  const section = btn.closest('section[data-section-key]');
+  if (!section) return;
+  const sections = getReorderableSections();
+  const idx = sections.indexOf(section);
+  if (idx < 0 || idx >= sections.length - 1) return;
+  section.parentNode.insertBefore(sections[idx + 1], section);
+  updateSectionReorderButtons();
+  persistSectionOrder();
+}
+
+function updateSectionReorderButtons() {
+  const sections = getReorderableSections();
+  sections.forEach((sec, i) => {
+    const upBtn = sec.querySelector('[data-action="move-section-up"]');
+    const downBtn = sec.querySelector('[data-action="move-section-down"]');
+    if (upBtn) upBtn.disabled = (i === 0);
+    if (downBtn) downBtn.disabled = (i === sections.length - 1);
+  });
+}
+
+function collectSectionOrder() {
+  return getReorderableSections().map(s => s.dataset.sectionKey);
+}
+
+function persistSectionOrder() {
+  if (!resumeId) return;
+  saveSectionOrder(resumeId, collectSectionOrder());
+}
+
+function applySectionOrder(order) {
+  const container = document.querySelector('.container');
+  const customSection = document.getElementById('section-custom');
+  for (const key of order) {
+    const section = container.querySelector(`section[data-section-key="${key}"]`);
+    if (section) {
+      container.insertBefore(section, customSection);
+    }
+  }
+  updateSectionReorderButtons();
+}
+
 // ─── Event binding ──────────────────────────────────────────────
 
 function bindEvents() {
@@ -312,6 +374,12 @@ function bindEvents() {
       case 'move-down':
         moveEntryDown(btn);
         debounceSave();
+        break;
+      case 'move-section-up':
+        moveSectionUp(btn);
+        break;
+      case 'move-section-down':
+        moveSectionDown(btn);
         break;
     }
   });
@@ -447,8 +515,9 @@ async function handleImportDraft(file) {
       document.getElementById('custom-section-entries').innerHTML = '';
       
       populateForm(data);
+      applySectionOrder(data.config?.section_order || DEFAULT_SECTION_ORDER);
     }
-    
+
     showToast('Draft imported!');
   } catch (err) {
     console.error('Import failed:', err);

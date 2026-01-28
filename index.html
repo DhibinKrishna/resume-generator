@@ -41,6 +41,10 @@
       <button class="btn btn-primary" id="btn-generate-top">Preview Resume &rarr;</button>
     </div>
 
+    <p class="formatting-hint">
+      Tip: Use <code>**text**</code> in descriptions and bullet points to <strong>bold</strong> text in your resume.
+    </p>
+
     <!-- Personal Info -->
     <section class="form-section" id="section-personal">
       <div class="form-section-header">
@@ -85,9 +89,13 @@
     </section>
 
     <!-- Profile Summary -->
-    <section class="form-section" id="section-summary">
+    <section class="form-section" id="section-summary" data-section-key="summary">
       <div class="form-section-header">
         <h2>Profile Summary</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div class="form-row single">
         <div class="form-field">
@@ -96,65 +104,92 @@
       </div>
     </section>
 
-    <!-- Work Experience -->
     <!-- Skills -->
-    <section class="form-section" id="section-skills">
+    <section class="form-section" id="section-skills" data-section-key="skills">
       <div class="form-section-header">
         <h2>Skills</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div id="skill-entries"></div>
       <button class="btn btn-add" id="btn-add-skill">+ Add Skill Category</button>
     </section>
 
     <!-- Licenses -->
-    <section class="form-section" id="section-licenses">
+    <section class="form-section" id="section-licenses" data-section-key="licenses">
       <div class="form-section-header">
         <h2>Licenses</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div id="license-entries"></div>
       <button class="btn btn-add" id="btn-add-license">+ Add License</button>
     </section>
 
     <!-- Work Experience -->
-    <section class="form-section" id="section-work">
+    <section class="form-section" id="section-work" data-section-key="work">
       <div class="form-section-header">
         <h2>Work Experience</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div id="work-entries"></div>
       <button class="btn btn-add" id="btn-add-work">+ Add Work Experience</button>
     </section>
 
     <!-- Certifications -->
-    <section class="form-section" id="section-certifications">
+    <section class="form-section" id="section-certifications" data-section-key="certifications">
       <div class="form-section-header">
         <h2>Certifications</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div id="certification-entries"></div>
       <button class="btn btn-add" id="btn-add-certification">+ Add Certification</button>
     </section>
 
     <!-- Internships -->
-    <section class="form-section" id="section-internships">
+    <section class="form-section" id="section-internships" data-section-key="internships">
       <div class="form-section-header">
         <h2>Internships</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div id="internship-entries"></div>
       <button class="btn btn-add" id="btn-add-internship">+ Add Internship</button>
     </section>
 
     <!-- Education -->
-    <section class="form-section" id="section-education">
+    <section class="form-section" id="section-education" data-section-key="education">
       <div class="form-section-header">
         <h2>Education</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div id="education-entries"></div>
       <button class="btn btn-add" id="btn-add-education">+ Add Education</button>
     </section>
 
     <!-- Languages -->
-    <section class="form-section" id="section-languages">
+    <section class="form-section" id="section-languages" data-section-key="languages">
       <div class="form-section-header">
         <h2>Languages</h2>
+        <div class="section-reorder-buttons">
+          <button class="btn-section-reorder" data-action="move-section-up" title="Move section up">&#9650;</button>
+          <button class="btn-section-reorder" data-action="move-section-down" title="Move section down">&#9660;</button>
+        </div>
       </div>
       <div id="language-entries"></div>
       <button class="btn btn-add" id="btn-add-language">+ Add Language</button>

@@ -1,5 +1,7 @@
 // DOCX export using docx.js
 
+import { DEFAULT_SECTION_ORDER } from './db.js';
+
 export async function downloadDOCX(data, filename = 'resume.docx', fontValue = 'default') {
   if (typeof docx === 'undefined') {
     alert('DOCX library not loaded. Please check your internet connection and refresh.');
@@ -134,14 +136,7 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
   // Helper: description paragraph
   function addDescription(text) {
     children.push(new Paragraph({
-      children: [
-        new TextRun({
-          text: text,
-          size: 20,
-          color: '444444',
-          font: docxFont,
-        }),
-      ],
+      children: parseBoldRuns(text, { size: 20, color: '444444', font: docxFont }),
       spacing: { before: 80, after: 120 },
     }));
   }
@@ -149,13 +144,7 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
   // Helper: bullet
   function addBullet(text) {
     children.push(new Paragraph({
-      children: [
-        new TextRun({
-          text: text,
-          size: 20,
-          font: docxFont,
-        }),
-      ],
+      children: parseBoldRuns(text, { size: 20, font: docxFont }),
       bullet: { level: 0 },
       spacing: { after: 60 },
     }));
@@ -164,15 +153,30 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
   // Helper: plain paragraph
   function addParagraph(text) {
     children.push(new Paragraph({
-      children: [
-        new TextRun({
-          text: text,
-          size: 20,
-          font: docxFont,
-        }),
-      ],
+      children: parseBoldRuns(text, { size: 20, font: docxFont }),
       spacing: { after: 200 },
     }));
+  }
+
+  function parseBoldRuns(text, baseProps = {}) {
+    const runs = [];
+    const regex = /\*\*(.+?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        runs.push(new TextRun({ ...baseProps, text: text.slice(lastIndex, match.index) }));
+      }
+      runs.push(new TextRun({ ...baseProps, text: match[1], bold: true }));
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < text.length) {
+      runs.push(new TextRun({ ...baseProps, text: text.slice(lastIndex) }));
+    }
+    if (runs.length === 0) {
+      runs.push(new TextRun({ ...baseProps, text }));
+    }
+    return runs;
   }
 
   function formatDateRange(start, end) {
@@ -182,141 +186,152 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
     return end;
   }
 
-  // Profile Summary
-  if (summary && summary.trim()) {
-    addSectionHeading('Profile Summary');
-    addParagraph(summary);
-  }
-
-  // Skills
-  const filledSkills = (data.skills || []).filter(s => s.category || (s.items && s.items.length > 0));
-  if (filledSkills.length > 0) {
-    addSectionHeading('Skills');
-    filledSkills.forEach(s => {
-      // Check if bulleted format
-      if (s.bulleted && s.items && s.items.length > 0) {
-        // Category as heading
-        children.push(new Paragraph({
-          children: [
-            new TextRun({
-              text: s.category || 'Skills',
-              bold: true,
-              size: 20,
-              font: docxFont,
-            }),
-          ],
-          spacing: { before: 480, after: 120 },
-        }));
-        // Items as bullets
-        s.items.forEach(item => addBullet(item));
-      } else {
-        // Comma separated (default)
-        children.push(new Paragraph({
-          children: [
-            new TextRun({
-              text: (s.category || '') + ': ',
-              bold: true,
-              size: 20,
-              font: docxFont,
-            }),
-            new TextRun({
-              text: (s.items || []).join(', '),
-              size: 20,
-              font: docxFont,
-            }),
-          ],
-          spacing: { after: 100 },
-        }));
+  // Section renderers
+  const sectionRenderers = {
+    summary() {
+      if (summary && summary.trim()) {
+        addSectionHeading('Profile Summary');
+        addParagraph(summary);
       }
-    });
-  }
+    },
 
-  // Licenses
-  const filledLicenses = (data.licenses || []).filter(l => l.name);
-  if (filledLicenses.length > 0) {
-    addSectionHeading('Licenses');
-    filledLicenses.forEach(l => {
-      let text = l.name;
-      if (l.issuing_org) text += ` — ${l.issuing_org}`;
-      const dates = [];
-      if (l.issue_date) dates.push(`Issued: ${l.issue_date}`);
-      if (l.expiration_date) dates.push(`Expires: ${l.expiration_date}`);
-      if (dates.length > 0) text += ` (${dates.join(' | ')})`;
-      if (l.license_number) text += ` License #: ${l.license_number}`;
-      addParagraph(text);
-      if (l.description) addParagraph(l.description);
-    });
-  }
+    skills() {
+      const filledSkills = (data.skills || []).filter(s => s.category || (s.items && s.items.length > 0));
+      if (filledSkills.length > 0) {
+        addSectionHeading('Skills');
+        filledSkills.forEach(s => {
+          if (s.bulleted && s.items && s.items.length > 0) {
+            children.push(new Paragraph({
+              children: [
+                new TextRun({
+                  text: s.category || 'Skills',
+                  bold: true,
+                  size: 20,
+                  font: docxFont,
+                }),
+              ],
+              spacing: { before: 480, after: 120 },
+            }));
+            s.items.forEach(item => addBullet(item));
+          } else {
+            children.push(new Paragraph({
+              children: [
+                new TextRun({
+                  text: (s.category || '') + ': ',
+                  bold: true,
+                  size: 20,
+                  font: docxFont,
+                }),
+                ...parseBoldRuns((s.items || []).join(', '), { size: 20, font: docxFont }),
+              ],
+              spacing: { after: 100 },
+            }));
+          }
+        });
+      }
+    },
 
-  // Work Experience
-  const filledWork = (data.workExperience || []).filter(w => w.company || w.role);
-  if (filledWork.length > 0) {
-    addSectionHeading('Work Experience');
-    filledWork.forEach(w => {
-      const title = w.company + (w.role ? ' — ' + w.role : '');
-      addEntryHeader(title, formatDateRange(w.start_date, w.end_date));
-      if (w.location) addSubtitle(w.location);
-      if (w.description && w.description.trim()) addDescription(w.description);
-      (w.achievements || []).forEach(a => {
-        if (a && a.trim()) addBullet(a);
-      });
-      const filledProjects = (w.projects || []).filter(p => p.title || p.description);
-      filledProjects.forEach(p => {
-        addEntryHeader(p.title || '', formatDateRange(p.start_date, p.end_date));
-        if (p.description) addParagraph(p.description);
-        if (p.technologies) addSubtitle(`Technologies: ${p.technologies}`);
-        if (p.link) addParagraph(p.link);
-      });
-    });
-  }
+    licenses() {
+      const filledLicenses = (data.licenses || []).filter(l => l.name);
+      if (filledLicenses.length > 0) {
+        addSectionHeading('Licenses');
+        filledLicenses.forEach(l => {
+          let text = l.name;
+          if (l.issuing_org) text += ` — ${l.issuing_org}`;
+          const dates = [];
+          if (l.issue_date) dates.push(`Issued: ${l.issue_date}`);
+          if (l.expiration_date) dates.push(`Expires: ${l.expiration_date}`);
+          if (dates.length > 0) text += ` (${dates.join(' | ')})`;
+          if (l.license_number) text += ` License #: ${l.license_number}`;
+          addParagraph(text);
+          if (l.description) addParagraph(l.description);
+        });
+      }
+    },
 
-  // Education
-  const filledEdu = (data.education || []).filter(e => e.institution || e.degree);
-  if (filledEdu.length > 0) {
-    addSectionHeading('Education');
-    filledEdu.forEach(e => {
-      addEntryHeader(e.institution || '', formatDateRange(e.start_date, e.end_date));
-      const degreeField = [e.degree, e.field].filter(Boolean).join(' in ');
-      if (degreeField) addSubtitle(degreeField);
-      if (e.gpa) addParagraph(`GPA: ${e.gpa}`);
-    });
-  }
+    work() {
+      const filledWork = (data.workExperience || []).filter(w => w.company || w.role);
+      if (filledWork.length > 0) {
+        addSectionHeading('Work Experience');
+        filledWork.forEach(w => {
+          const title = w.company + (w.role ? ' — ' + w.role : '');
+          addEntryHeader(title, formatDateRange(w.start_date, w.end_date));
+          if (w.location) addSubtitle(w.location);
+          if (w.description && w.description.trim()) addDescription(w.description);
+          (w.achievements || []).forEach(a => {
+            if (a && a.trim()) addBullet(a);
+          });
+          const filledProjects = (w.projects || []).filter(p => p.title || p.description);
+          filledProjects.forEach(p => {
+            addEntryHeader(p.title || '', formatDateRange(p.start_date, p.end_date));
+            if (p.description) addParagraph(p.description);
+            if (p.technologies) addSubtitle(`Technologies: ${p.technologies}`);
+            if (p.link) addParagraph(p.link);
+          });
+        });
+      }
+    },
 
-  // Certifications
-  const filledCerts = (data.certifications || []).filter(c => c.name);
-  if (filledCerts.length > 0) {
-    addSectionHeading('Certifications');
-    filledCerts.forEach(c => {
-      let text = c.name;
-      if (c.issuing_org) text += ` — ${c.issuing_org}`;
-      if (c.date) text += ` (${c.date})`;
-      addParagraph(text);
-    });
-  }
+    education() {
+      const filledEdu = (data.education || []).filter(e => e.institution || e.degree);
+      if (filledEdu.length > 0) {
+        addSectionHeading('Education');
+        filledEdu.forEach(e => {
+          const degreeField = [e.degree, e.field].filter(Boolean).join(' in ');
+          addEntryHeader(degreeField || 'Degree', formatDateRange(e.start_date, e.end_date));
+          if (e.institution) addSubtitle(e.institution);
+          if (e.gpa) addParagraph(`GPA: ${e.gpa}`);
+        });
+      }
+    },
 
-  // Internships
-  const filledInternships = (data.internships || []).filter(i => i.company || i.role);
-  if (filledInternships.length > 0) {
-    addSectionHeading('Internships');
-    filledInternships.forEach(i => {
-      const title = i.company + (i.role ? ' — ' + i.role : '');
-      addEntryHeader(title, formatDateRange(i.start_date, i.end_date));
-      if (i.description) addParagraph(i.description);
-    });
-  }
+    certifications() {
+      const filledCerts = (data.certifications || []).filter(c => c.name);
+      if (filledCerts.length > 0) {
+        addSectionHeading('Certifications');
+        filledCerts.forEach(c => {
+          let text = c.name;
+          if (c.issuing_org) text += ` — ${c.issuing_org}`;
+          if (c.date) text += ` (${c.date})`;
+          addParagraph(text);
+        });
+      }
+    },
 
-  // Languages
-  const filledLangs = (data.languages || []).filter(l => l.language);
-  if (filledLangs.length > 0) {
-    addSectionHeading('Languages');
-    filledLangs.forEach(l => {
-      let text = l.language;
-      if (l.proficiency) text += ` — ${l.proficiency}`;
-      addParagraph(text);
-    });
-  }
+    internships() {
+      const filledInternships = (data.internships || []).filter(i => i.company || i.role);
+      if (filledInternships.length > 0) {
+        addSectionHeading('Internships');
+        filledInternships.forEach(i => {
+          const title = i.company + (i.role ? ' — ' + i.role : '');
+          addEntryHeader(title, formatDateRange(i.start_date, i.end_date));
+          if (i.description) addParagraph(i.description);
+        });
+      }
+    },
 
-  // Custom sections
+    languages() {
+      const filledLangs = (data.languages || []).filter(l => l.language);
+      if (filledLangs.length > 0) {
+        addSectionHeading('Languages');
+        filledLangs.forEach(l => {
+          let text = l.language;
+          if (l.proficiency) text += ` — ${l.proficiency}`;
+          addParagraph(text);
+        });
+      }
+    },
+  };
+
+  // Render sections in configured order
+  const sectionOrder = data.config?.section_order || DEFAULT_SECTION_ORDER;
+  sectionOrder.forEach(key => {
+    if (sectionRenderers[key]) {
+      sectionRenderers[key]();
+    }
+  });
+
+  // Custom sections (always last)
   const filledCustom = (data.customSections || []).filter(s => s.title);
   filledCustom.forEach(s => {
     addSectionHeading(s.title);
@@ -350,4 +365,3 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
   a.click();
   URL.revokeObjectURL(url);
 }
-

@@ -192,6 +192,24 @@ body {
   background: #fff;
 }
 
+/* Formatting hint */
+.formatting-hint {
+  font-size: 0.82rem;
+  color: #777;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--theme-primary);
+  background: #fafafa;
+  border-radius: 0 4px 4px 0;
+}
+
+.formatting-hint code {
+  background: #eee;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
 /* Form sections */
 .form-section {
   background: #fff;
@@ -216,6 +234,45 @@ body {
   color: var(--theme-primary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Section reorder buttons */
+.section-reorder-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-section-reorder {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 0.7rem;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #555;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-section-reorder:hover {
+  background: #e0e0e0;
+  border-color: #bbb;
+  color: #333;
+}
+
+.btn-section-reorder:active {
+  background: #d0d0d0;
+  transform: scale(0.95);
+}
+
+.btn-section-reorder:disabled {
+  opacity: 0.3;
+  cursor: default;
+  pointer-events: none;
 }
 
 /* Form fields */
