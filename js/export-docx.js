@@ -231,6 +231,22 @@ export async function downloadDOCX(data, filename = 'resume.docx', fontValue = '
     });
   }
 
+  // Licenses
+  const filledLicenses = (data.licenses || []).filter(l => l.name);
+  if (filledLicenses.length > 0) {
+    addSectionHeading('Licenses');
+    filledLicenses.forEach(l => {
+      let text = l.name;
+      if (l.issuing_org) text += ` — ${l.issuing_org}`;
+      const dates = [];
+      if (l.issue_date) dates.push(`Issued: ${l.issue_date}`);
+      if (l.expiration_date) dates.push(`Expires: ${l.expiration_date}`);
+      if (dates.length > 0) text += ` (${dates.join(' | ')})`;
+      if (l.license_number) text += ` License #: ${l.license_number}`;
+      addParagraph(text);
+    });
+  }
+
   // Work Experience
   const filledWork = (data.workExperience || []).filter(w => w.company || w.role);
   if (filledWork.length > 0) {

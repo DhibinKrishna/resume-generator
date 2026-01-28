@@ -3,7 +3,7 @@
 import {
   initDB, getOrCreateResume, updateResumeConfig,
   savePersonalInfo, saveProfileSummary, saveWorkExperience,
-  saveEducation, saveSkills, saveCertifications,
+  saveEducation, saveSkills, saveLicenses, saveCertifications,
   saveInternships, saveLanguages, saveCustomSections,
   loadResume, clearAllData, exportDraft, importDraft,
 } from './db.js';
@@ -12,12 +12,13 @@ import {
   addWorkEntry, addAchievement, addWorkProject, removeWorkEntry,
   addEducationEntry, removeEducationEntry,
   addSkillCategory, addSkillItem, removeSkillCategory,
+  addLicenseEntry, removeLicenseEntry,
   addCertificationEntry, removeCertificationEntry,
   addInternshipEntry, removeInternshipEntry,
   addLanguageEntry, removeLanguageEntry,
   addCustomSection, addCustomItem, removeCustomSection,
   collectPersonalInfo, collectProfileSummary, collectWorkExperience,
-  collectEducation, collectSkills,
+  collectEducation, collectSkills, collectLicenses,
   collectCertifications, collectInternships, collectLanguages,
   collectCustomSections, resetCounters,
 } from './form.js';
@@ -96,6 +97,11 @@ function populateForm(data) {
   // Skills
   if (data.skills && data.skills.length > 0) {
     data.skills.forEach(entry => addSkillCategory(entry));
+  }
+
+  // Licenses
+  if (data.licenses && data.licenses.length > 0) {
+    data.licenses.forEach(entry => addLicenseEntry(entry));
   }
 
   // Certifications
@@ -208,6 +214,7 @@ function bindEvents() {
   document.getElementById('btn-add-work').addEventListener('click', () => addWorkEntry());
   document.getElementById('btn-add-education').addEventListener('click', () => addEducationEntry());
   document.getElementById('btn-add-skill').addEventListener('click', () => addSkillCategory());
+  document.getElementById('btn-add-license').addEventListener('click', () => addLicenseEntry());
   document.getElementById('btn-add-certification').addEventListener('click', () => addCertificationEntry());
   document.getElementById('btn-add-internship').addEventListener('click', () => addInternshipEntry());
   document.getElementById('btn-add-language').addEventListener('click', () => addLanguageEntry());
@@ -221,7 +228,7 @@ function bindEvents() {
 
     const sectionRemovals = [
       'remove-work', 'remove-education',
-      'remove-skill', 'remove-certification', 'remove-internship',
+      'remove-skill', 'remove-license', 'remove-certification', 'remove-internship',
       'remove-language', 'remove-custom-section'
     ];
 
@@ -262,6 +269,10 @@ function bindEvents() {
         break;
       case 'remove-skill':
         removeSkillCategory(btn.dataset.index);
+        debounceSave();
+        break;
+      case 'remove-license':
+        removeLicenseEntry(btn.dataset.index);
         debounceSave();
         break;
       case 'add-skill-item':
@@ -354,6 +365,7 @@ async function saveAll() {
     await saveWorkExperience(resumeId, collectWorkExperience());
     await saveEducation(resumeId, collectEducation());
     await saveSkills(resumeId, collectSkills());
+    await saveLicenses(resumeId, collectLicenses());
     await saveCertifications(resumeId, collectCertifications());
     await saveInternships(resumeId, collectInternships());
     await saveLanguages(resumeId, collectLanguages());
@@ -428,6 +440,7 @@ async function handleImportDraft(file) {
       document.getElementById('work-entries').innerHTML = '';
       document.getElementById('education-entries').innerHTML = '';
       document.getElementById('skill-entries').innerHTML = '';
+      document.getElementById('license-entries').innerHTML = '';
       document.getElementById('certification-entries').innerHTML = '';
       document.getElementById('internship-entries').innerHTML = '';
       document.getElementById('language-entries').innerHTML = '';

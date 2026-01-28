@@ -212,6 +212,20 @@ function createTables() {
   `);
 
   db.run(`
+    CREATE TABLE IF NOT EXISTS licenses (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      resume_id INTEGER NOT NULL,
+      name TEXT,
+      issuing_org TEXT,
+      issue_date TEXT,
+      expiration_date TEXT,
+      license_number TEXT,
+      sort_order INTEGER DEFAULT 0,
+      FOREIGN KEY (resume_id) REFERENCES resumes(id) ON DELETE CASCADE
+    );
+  `);
+
+  db.run(`
     CREATE TABLE IF NOT EXISTS certifications (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       resume_id INTEGER NOT NULL,
@@ -469,6 +483,24 @@ export function getSkills(resumeId) {
   }));
 }
 
+// ─── Licenses ───────────────────────────────────────────────────
+
+export async function saveLicenses(resumeId, entries) {
+  run('DELETE FROM licenses WHERE resume_id = ?', [resumeId]);
+  for (let i = 0; i < entries.length; i++) {
+    const entry = entries[i];
+    run(`INSERT INTO licenses (resume_id, name, issuing_org, issue_date, expiration_date, license_number, sort_order)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [resumeId, entry.name, entry.issuing_org, entry.issue_date, entry.expiration_date, entry.license_number, i]);
+  }
+  run("UPDATE resumes SET updated_at = datetime('now') WHERE id = ?", [resumeId]);
+  await persist();
+}
+
+export function getLicenses(resumeId) {
+  return queryAll('SELECT * FROM licenses WHERE resume_id = ? ORDER BY sort_order', [resumeId]);
+}
+
 // ─── Certifications ─────────────────────────────────────────────
 
 export async function saveCertifications(resumeId, entries) {
@@ -573,6 +605,7 @@ export function loadResume(resumeId) {
     workExperience: getWorkExperience(resumeId),
     education: getEducation(resumeId),
     skills: getSkills(resumeId),
+    licenses: getLicenses(resumeId),
     certifications: getCertifications(resumeId),
     internships: getInternships(resumeId),
     languages: getLanguages(resumeId),
@@ -626,6 +659,7 @@ export async function importDraft(jsonData, resumeId) {
     console.warn('Draft contains top-level projects (old format). These will be skipped — projects are now nested under work experience.');
   }
   if (r.skills) await saveSkills(resumeId, r.skills);
+  if (r.licenses) await saveLicenses(resumeId, r.licenses);
   if (r.certifications) await saveCertifications(resumeId, r.certifications);
   if (r.internships) await saveInternships(resumeId, r.internships);
   if (r.languages) await saveLanguages(resumeId, r.languages);
